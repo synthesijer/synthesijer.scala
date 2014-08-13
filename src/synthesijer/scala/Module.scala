@@ -10,11 +10,13 @@ import synthesijer.hdl.HDLSignal
 import synthesijer.hdl.sequencer.SequencerState
 import synthesijer.hdl.HDLUtils
 import synthesijer.hdl.expr.HDLValue
+import synthesijer.hdl.HDLInstance
+import synthesijer.hdl.expr.HDLPreDefinedConstant
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName){
   
 	def this(name:String) = this(name, "clk", "reset")
-  
+	
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
   
@@ -29,10 +31,23 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   def expr(op:HDLOp, e0:Any, e1:Any) : Expr = new Expr(newExpr(op, Utils.toExpr(e0), Utils.toExpr(e1)));
   
   def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
+  
+  def instance(target:Module, name:String) : Instance = new Instance(newModuleInstance(target, name))
 
 }
 
+class Instance(target:HDLInstance) {
+  
+	val sysClk = new Signal(target.getSignalForPort(target.getSubModule().getSysClkName()))
+  val sysReset = new Signal(target.getSignalForPort(target.getSubModule().getSysResetName()))
+	
+  def signalFor(name:String) = target.getSignalForPort(name)
+  
+}
+
 class SimModule(name:String) extends Module(name:String){
+
+  
 }
 
 class Port(p:HDLPort) {
@@ -45,6 +60,7 @@ class Signal(val signal:HDLSignal){
 	
 	def <= (e:Expr) : Unit = signal.setAssign(null, e.expr)
 	def <= (e:HDLExpr) : Unit = signal.setAssign(null, e)
+	def <= (s:Signal) : Unit = signal.setAssign(null, s.signal)
 	
 	def <= (t:(Any, Any)) : Unit = signal.setAssign(Utils.toState(t._1), Utils.toExpr(t._2))
 
@@ -94,4 +110,41 @@ object Utils {
 	  case s:Signal => return s.signal
 	}  
 
+}
+
+object Constant{
+  
+	val VECTOR_ZERO = HDLPreDefinedConstant.VECTOR_ZERO
+	val ZERO = HDLPreDefinedConstant.INTEGER_ZERO
+	val ONE = HDLPreDefinedConstant.INTEGER_ONE
+	val TRUE = HDLPreDefinedConstant.BOOLEAN_TRUE
+	val FALSE = HDLPreDefinedConstant.BOOLEAN_FALSE
+	val LOW = HDLPreDefinedConstant.LOW
+	val HIGH = HDLPreDefinedConstant.HIGH
+
+}
+
+object Op{
+	val + = HDLOp.ADD
+	val - = HDLOp.SUB
+	val and = HDLOp.AND
+	val or = HDLOp.OR
+	val xor = HDLOp.XOR
+	val not = HDLOp.NOT
+	val == = HDLOp.EQ
+	val < = HDLOp.LT
+	val > = HDLOp.GT
+	val <= = HDLOp.LEQ
+	val >= = HDLOp.GEQ
+	val /= = HDLOp.NEQ
+	val REF = HDLOp.REF
+	val IF = HDLOp.IF
+	val & = HDLOp.CONCAT
+	val drop = HDLOp.DROPHEAD
+	val padding = HDLOp.PADDINGHEAD
+	val padding0 = HDLOp.PADDINGHEAD_ZERO
+	val id = HDLOp.ID
+	val >>> = HDLOp.ARITH_RSHIFT // TODO check
+	val >> = HDLOp.LOGIC_RSHIFT
+	val << = HDLOp.LSHIFT
 }

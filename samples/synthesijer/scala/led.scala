@@ -1,29 +1,24 @@
 package synthesijer.scala
 
-import synthesijer.hdl.HDLPort
-import synthesijer.hdl.HDLPrimitiveType
-import synthesijer.hdl.HDLOp
-import synthesijer.hdl.expr.HDLPreDefinedConstant
-
 object led {
   
   def generate_led() : Module = {
     val m = new Module("led")
     val q = m.outP("q")
     val counter = m.signal("counter", 32)
-    q <= m.expr(HDLOp.REF, counter, 5)
+    q <= m.expr(Op.REF, counter, 5)
     
     // at main state, counter <= counter + 1
-    val seq = m.newSequencer("main");
-    val ss = seq.getIdleState();
-    counter <= (ss, m.expr(HDLOp.ADD, counter, 1));
+    val seq = m.sequencer("main");
+    val ss = seq.idle
+    counter <= (ss, m.expr(Op.+, counter, 1));
     return m
   }
   
   def generate_sim(target:Module, name:String) : SimModule = {
 
 	  val sim = new SimModule(name)
-	  val inst = sim.newModuleInstance(target, "U");
+	  val inst = sim.instance(target, "U");
 
 	  val clk = sim.signal("clk")
 	  val reset = sim.signal("reset")
@@ -37,21 +32,21 @@ object led {
 	  ss -> s0;
 	  s0 -> ss;
 
-	  clk <= (ss, HDLPreDefinedConstant.LOW);
-	  clk <= (s0, HDLPreDefinedConstant.HIGH);
+	  clk <= (ss, Constant.LOW);
+	  clk <= (s0, Constant.HIGH);
 
-	  val expr = sim.expr(HDLOp.ADD, counter, 1);
+	  val expr = sim.expr(Op.+, counter, 1);
 	  counter <= (ss, expr);
 	  counter <= (s0, expr);
 
-	  reset.signal.setResetValue(HDLPreDefinedConstant.LOW);
-	  reset <= (ss, sim.expr(HDLOp.IF,
-			                     sim.expr(HDLOp.AND, sim.expr(HDLOp.GT, counter, 3), sim.expr(HDLOp.LT, counter, 8)),
-			                     HDLPreDefinedConstant.HIGH,
-			                     HDLPreDefinedConstant.LOW));
+	  reset.signal.setResetValue(Constant.LOW);
+	  reset <= (ss, sim.expr(Op.IF,
+			                     sim.expr(Op.and, sim.expr(Op.>, counter, 3), sim.expr(Op.<, counter, 8)),
+			                     Constant.HIGH,
+			                     Constant.LOW));
 
-	  inst.getSignalForPort("clk").setAssign(null, clk.signal);
-	  inst.getSignalForPort("reset").setAssign(null, reset.signal);
+	  inst.sysClk <= clk
+	  inst.sysReset <= reset
 	  
 	  return sim
   }

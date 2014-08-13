@@ -78,7 +78,7 @@ object UPLTest {
           -> send_dest_addr(sequencer.add())
           -> send_port(sequencer.add())
           -> send_length(sequencer.add())
-          -> send_data(sequencer.add()))
+          -> send_data(sequencer.add()) -> idle)
           
     return m
   }

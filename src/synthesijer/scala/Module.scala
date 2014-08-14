@@ -1,7 +1,19 @@
 package synthesijer.scala
 
-import synthesijer.hdl._
-import synthesijer.hdl.expr._
+import java.io.FileOutputStream
+import java.io.PrintWriter
+
+import synthesijer.hdl.HDLExpr
+import synthesijer.hdl.HDLInstance
+import synthesijer.hdl.HDLModule
+import synthesijer.hdl.HDLOp
+import synthesijer.hdl.HDLPort
+import synthesijer.hdl.HDLPrimitiveType
+import synthesijer.hdl.HDLSignal
+import synthesijer.hdl.HDLUtils
+import synthesijer.hdl.expr.HDLPreDefinedConstant
+import synthesijer.hdl.expr.HDLValue
+import synthesijer.hdl.tools.HDLSequencerToDot
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName){
   
@@ -29,6 +41,16 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
   
   def instance(target:Module, name:String) : Instance = new Instance(newModuleInstance(target, name))
+  
+  def visualize_statemachine() : Unit = {
+    val dest = new PrintWriter(new FileOutputStream(String.format("%s_statemachine_hdl.dot", getName())), true)
+    try{
+    	val obj = new HDLSequencerToDot(this, dest)
+    	obj.generate()
+    }finally{
+    	dest.close()
+    }
+  }
 
 }
 

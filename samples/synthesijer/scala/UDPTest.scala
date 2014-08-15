@@ -86,6 +86,7 @@ object UPLTest {
   def main(args:Array[String]) = {
     val m = gen_module()
     m.visualize_statemachine()
+    m.visualize_resource()
     m.genVHDL()
     m.genVerilog()
   }

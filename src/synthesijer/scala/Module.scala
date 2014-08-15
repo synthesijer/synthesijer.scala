@@ -2,7 +2,6 @@ package synthesijer.scala
 
 import java.io.FileOutputStream
 import java.io.PrintWriter
-
 import synthesijer.hdl.HDLExpr
 import synthesijer.hdl.HDLInstance
 import synthesijer.hdl.HDLModule
@@ -14,6 +13,7 @@ import synthesijer.hdl.HDLUtils
 import synthesijer.hdl.expr.HDLPreDefinedConstant
 import synthesijer.hdl.expr.HDLValue
 import synthesijer.hdl.tools.HDLSequencerToDot
+import synthesijer.hdl.tools.ResourceUsageTable
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName){
   
@@ -42,15 +42,9 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   
   def instance(target:Module, name:String) : Instance = new Instance(newModuleInstance(target, name))
   
-  def visualize_statemachine() : Unit = {
-    val dest = new PrintWriter(new FileOutputStream(String.format("%s_statemachine_hdl.dot", getName())), true)
-    try{
-    	val obj = new HDLSequencerToDot(this, dest)
-    	obj.generate()
-    }finally{
-    	dest.close()
-    }
-  }
+  def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
+
+  def visualize_resource() : Unit = HDLUtils.genResourceUsageTable(this)
 
 }
 

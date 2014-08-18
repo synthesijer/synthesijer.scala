@@ -1,26 +1,13 @@
 package synthesijer.scala
 
-class UPLIn(m:Module, prefix:String){
-	val req = m.inP(prefix  + "Req")
-  val en = m.inP(prefix  + "En")
-  val ack = m.outP(prefix + "Ack")
-  val data = m.inP(prefix  + "Data", 32)
-}
-
-class UPLOut(m:Module, prefix:String){
-	val req = m.outP(prefix + "Req")
-  val en = m.outP(prefix + "En")
-  val ack = m.inP(prefix  + "Ack")
-  val data = m.outP(prefix + "Data", 32)
-}
 
 object UPLTest {
 
   def gen_module() : Module = {
  
     val m = new Module("UPLTest")
-    val uplin = new UPLIn(m, "pI0")
-    val uplout = new UPLOut(m, "pO0")
+    val uplin = new UPLIn(m, "pI0", 32)
+    val uplout = new UPLOut(m, "pO0", 32)
  
     val ipaddr = m.inP("pMyIpAddr", 32)
     val port = m.inP("pMyPort", 16)

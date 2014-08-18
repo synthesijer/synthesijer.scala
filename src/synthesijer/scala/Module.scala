@@ -17,6 +17,8 @@ import synthesijer.hdl.tools.ResourceUsageTable
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName){
   
+  var id = 0
+  
 	def this(name:String) = this(name, "clk", "reset")
 	
   def genVHDL() = Utils.genVHDL(this)
@@ -29,11 +31,23 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   def inP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
   
 	def signal(name:String, width:Integer) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genSignedType(width)))
+  def signal(width:Integer) : Signal = {
+	  val sig = new Signal(newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
+	  id = id + 1
+	  return sig
+  }
 	
-	def signal(name:String) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genBitType()));
+	def signal(name:String) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genBitType()))
+	
+	def signal() : Signal = {
+	  val sig = new Signal(newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
+	  id = id + 1
+	  return sig
+	}
   
   def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:ExprItem) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), e2.toHDLExpr()))
   def expr(op:HDLOp, e0:ExprItem, e1:ExprItem) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr()))
+  def expr(op:HDLOp, e0:ExprItem) : Expr = new Expr(newExpr(op, e0.toHDLExpr()))
   
   def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
   def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));

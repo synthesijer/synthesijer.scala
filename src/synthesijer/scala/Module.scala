@@ -51,6 +51,10 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   
   def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
   def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
+
+// TODO 
+//  def expr(op:HDLOp, e0:ExprItem*) = {
+//  }
   
   def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
   

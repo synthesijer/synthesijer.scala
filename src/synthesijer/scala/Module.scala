@@ -58,6 +58,9 @@ trait ModuleFunc extends HDLModule{
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
 
   def visualize_resource() : Unit = HDLUtils.genResourceUsageTable(this)
+  
+  def parameter(name:String, value:Int) = newParameter(name, HDLPrimitiveType.genIntegerType(), value.toString())
+
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{

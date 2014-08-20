@@ -21,7 +21,7 @@ object led {
 
 	  val sim = new SimModule(name)
 	  val inst = sim.instance(target, "U")
-
+	  
 	  val clk = sim.signal("clk")
 	  val reset = sim.signal("reset")
 	  val counter = sim.signal("counter", 32)

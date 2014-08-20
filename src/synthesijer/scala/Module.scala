@@ -14,13 +14,12 @@ import synthesijer.hdl.expr.HDLPreDefinedConstant
 import synthesijer.hdl.expr.HDLValue
 import synthesijer.hdl.tools.HDLSequencerToDot
 import synthesijer.hdl.tools.ResourceUsageTable
+import synthesijer.hdl.HDLSimModule
 
-class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName){
+trait ModuleFunc extends HDLModule{
   
   var id = 0
-  
-	def this(name:String) = this(name, "clk", "reset")
-	
+  	
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
   
@@ -63,7 +62,17 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
 
   def visualize_resource() : Unit = HDLUtils.genResourceUsageTable(this)
+  
+  def parameter(name:String, value:Int) = newParameter(name, HDLPrimitiveType.genIntegerType(), value.toString())
 
+}
+
+class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
+	  def this(name:String) = this(name, "clk", "reset")
+}
+
+class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
+  
 }
 
 class Instance(target:HDLInstance) {
@@ -71,11 +80,8 @@ class Instance(target:HDLInstance) {
 	val sysClk = new Signal(target.getSignalForPort(target.getSubModule().getSysClkName()))
   val sysReset = new Signal(target.getSignalForPort(target.getSubModule().getSysResetName()))
 	
-  def signalFor(name:String) = target.getSignalForPort(name)
-  
-}
-
-class SimModule(name:String) extends Module(name:String){
+  def signalFor(name:String) = new Signal(target.getSignalForPort(name))
+  def signalFor(p:Port) = new Signal(target.getSignalForPort(p.port.getName()))
   
 }
 
@@ -117,7 +123,7 @@ class Expr(val expr:HDLExpr) extends ExprItem{
 
 }
 
-class Value(n:Int, width:Int) extends ExprItem{
+class Value(n:Long, width:Int) extends ExprItem{
 	val value = new HDLValue(n.toString(), HDLPrimitiveType.genVectorType(width))
 	
 	def toHDLExpr() = value
@@ -126,9 +132,9 @@ class Value(n:Int, width:Int) extends ExprItem{
 
 object Utils {
   
-  def genVHDL(m:Module) = HDLUtils.generate(m, HDLUtils.VHDL);
+  def genVHDL(m:HDLModule) = HDLUtils.generate(m, HDLUtils.VHDL);
   
-  def genVerilog(m:Module) = HDLUtils.generate(m, HDLUtils.VHDL);
+  def genVerilog(m:HDLModule) = HDLUtils.generate(m, HDLUtils.VHDL);
   
   def toHDLValue(num:Int) = new HDLValue(num.toString, HDLPrimitiveType.genIntegerType())
 

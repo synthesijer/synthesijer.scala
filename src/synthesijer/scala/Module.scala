@@ -61,6 +61,8 @@ trait ModuleFunc extends HDLModule{
   
   def parameter(name:String, value:Int) = newParameter(name, HDLPrimitiveType.genIntegerType(), value.toString())
 
+  def range(exp:ExprItem, b:Int, e:Int):ExprItem = expr(Op.take, expr(Op.>>>, exp, e), b - e + 1)
+  
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
@@ -179,6 +181,7 @@ object Op{
 	val & = HDLOp.CONCAT
 	val concat = HDLOp.CONCAT
 	val drop = HDLOp.DROPHEAD
+	val take = HDLOp.TAKE
 	val padding = HDLOp.PADDINGHEAD
 	val padding0 = HDLOp.PADDINGHEAD_ZERO
 	val id = HDLOp.ID

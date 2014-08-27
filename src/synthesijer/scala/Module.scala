@@ -59,6 +59,8 @@ trait ModuleFunc extends HDLModule{
   
   def instance(target:Module, name:String) : Instance = new Instance(newModuleInstance(target, name))
   
+  def instance(target:HDLModule, name:String) : Instance = new Instance(newModuleInstance(target, name))
+  
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
 
   def visualize_resource() : Unit = HDLUtils.genResourceUsageTable(this)
@@ -99,6 +101,8 @@ class Port(val port:HDLPort) extends ExprItem{
 	
   def toHDLExpr() = port.getSignal()
   
+  def default(e:ExprItem):Unit = port.getSignal().setDefaultValue(e.toHDLExpr())
+  
 }
 
 trait ExprItem {
@@ -116,6 +120,8 @@ class Signal(val signal:HDLSignal) extends ExprItem{
 	def reset(e:ExprItem): Unit = signal.setResetValue(e.toHDLExpr)
 	
 	def toHDLExpr() = signal
+	
+	def default(e:ExprItem):Unit = signal.setDefaultValue(e.toHDLExpr())
 
 }
 

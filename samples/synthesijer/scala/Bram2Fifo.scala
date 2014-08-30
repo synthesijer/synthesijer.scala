@@ -3,15 +3,14 @@ package synthesijer.scala
 import synthesijer.scala._
 import synthesijer.lib.SimpleBlockRAM
 
-class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int, debug:Boolean) extends Module(n,c,r){
+class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Module(n,c,r){
   
-  def this(words:Int, width:Int, n:String) = this(n, "clk", "reset", words, width, true)
-  
-  def this(words:Int, width:Int) = this("bram2fifo", "clk", "reset", words, width, false)
+  def this(words:Int, width:Int) = this("bram2fifo_" + words + "_" + width, "clk", "reset", words, width)
 
   val init = inP("init")
   val kick = inP("kick")
   val busy = outP("busy")
+  val test = inP("test")
   
   val bram = new BRAM(this, "bram", width)
   val fifo = new FIFO_OUT(this, "fifo", width)
@@ -34,11 +33,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int, debug:Boolea
     val s = seq.add()
     write_addr <= (s, expr(Op.+, write_addr, 1))
     bram.address <= (s, write_addr)
-    if(debug){
-    	bram.dout <= (s, write_addr)
-    }else{
-    	bram.dout <= (s, Constant.VECTOR_ZERO)
-    }
+    bram.dout <= (s, expr(Op.IF, test, write_addr, Constant.VECTOR_ZERO))
     bram.we <= (s, Constant.HIGH)
     return s
   }
@@ -94,14 +89,15 @@ class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
 	
 	inst.signalFor(target.kick) <= expr(Op.IF, expr(Op.==, counter, 200), Constant.HIGH, Constant.LOW)
 	inst.signalFor(target.init) <= expr(Op.IF, expr(Op.==, counter, 10), Constant.HIGH, Constant.LOW)
+	inst.signalFor(target.test) <= Constant.HIGH
 			
 	inst.sysClk <= clk
 	inst.sysReset <= reset
 
-	ram.signalFor("address_b") <= inst.signalFor("bram_address")
-	ram.signalFor("we_b") <= inst.signalFor("bram_we")
-	inst.signalFor("bram_din") <= ram.signalFor("dout_b") 
-	ram.signalFor("din_b") <= inst.signalFor("bram_dout")
+	ram.signalFor("address_b") <= inst.signalFor(target.bram.address)
+	ram.signalFor("we_b") <= inst.signalFor(target.bram.we)
+	inst.signalFor(target.bram.din) <= ram.signalFor("dout_b") 
+	ram.signalFor("din_b") <= inst.signalFor(target.bram.dout)
 	ram.sysClk <= clk
 }
 
@@ -111,7 +107,7 @@ object Bram2Fifo {
 	  val m = new Bram2Fifo(1024, 32)
 	  m.visualize_statemachine();
 	  m.genVHDL()
-	  val debug = new Bram2Fifo(32,32,"bram2fifo_debug")
+	  val debug = new Bram2Fifo(32,32)
 	  debug.genVHDL()
 	  val sim = new Bram2FifoSim(debug)
 	  sim.genVHDL()

@@ -22,7 +22,7 @@ trait ModuleFunc extends HDLModule{
   	
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
-  
+    
   def outP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
 	
@@ -73,6 +73,10 @@ trait ModuleFunc extends HDLModule{
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
 	  def this(name:String) = this(name, "clk", "reset")
+	  
+	  val sysClk = new Signal(getSysClk().getSignal())
+	  val sysReset = new Signal(getSysReset().getSignal())
+
 }
 
 class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{

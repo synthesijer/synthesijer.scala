@@ -76,8 +76,32 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
 }
 
 class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
-  
-}
+
+	def system(tick:Int):(Signal,Signal,Signal) = {  
+	  val clk = signal("clk")
+	  val reset = signal("reset")
+	  val counter = signal("counter", 32)
+	  
+	  val seq = sequencer("system")
+	  seq.tick(tick)
+	  
+	  val ss = seq.idle
+	  val s0 = seq.add("S0")
+	  ss -> s0 -> ss
+
+	  clk <= (ss, Constant.LOW)
+	  clk <= (s0, Constant.HIGH)
+
+	  val countup = expr(Op.+, counter, 1)
+	  counter <= (s0, countup)
+
+	  reset.reset(Constant.LOW)
+	  reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), Constant.HIGH, Constant.LOW))
+	  
+	  return (clk, reset, counter)
+	}
+	
+}  
 
 class Instance(target:HDLInstance) {
   

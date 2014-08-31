@@ -11,6 +11,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   val kick = inP("kick")
   val busy = outP("busy")
   val test = inP("test")
+  val offset = inP("offset", 32)
   
   val bram = new BRAM(this, "bram", width)
   val fifo = new FIFO_OUT(this, "fifo", width)
@@ -24,10 +25,10 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
 
   bram.we.default(Constant.LOW)
   fifo.we.default(Constant.LOW)
-  bram.address <= (seq.idle, Constant.VECTOR_ZERO)
+  bram.address <= (seq.idle, offset)
   
   val write_addr = signal(32)
-  write_addr <= (seq.idle, Constant.VECTOR_ZERO)
+  write_addr <= (seq.idle, offset)
   
   def gen_init_entry():State = {
     val s = seq.add()
@@ -94,6 +95,7 @@ class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
 	inst.sysClk <= clk
 	inst.sysReset <= reset
 
+	inst.signalFor(target.offset) <= Constant.VECTOR_ZERO
 	ram.signalFor("address_b") <= inst.signalFor(target.bram.address)
 	ram.signalFor("we_b") <= inst.signalFor(target.bram.we)
 	inst.signalFor(target.bram.din) <= ram.signalFor("dout_b") 

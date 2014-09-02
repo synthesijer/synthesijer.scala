@@ -29,7 +29,10 @@ trait ModuleFunc extends HDLModule{
   def inP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
   def inP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
   
-	def signal(name:String, width:Integer) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genSignedType(width)))
+  def ioP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
+  def ioP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))
+
+  def signal(name:String, width:Integer) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genSignedType(width)))
   def signal(width:Integer) : Signal = {
 	  val sig = new Signal(newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
 	  id = id + 1

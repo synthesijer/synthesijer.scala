@@ -1,7 +1,5 @@
 package synthesijer.scala
 
-import java.io.FileOutputStream
-import java.io.PrintWriter
 import synthesijer.hdl.HDLExpr
 import synthesijer.hdl.HDLInstance
 import synthesijer.hdl.HDLModule
@@ -9,12 +7,10 @@ import synthesijer.hdl.HDLOp
 import synthesijer.hdl.HDLPort
 import synthesijer.hdl.HDLPrimitiveType
 import synthesijer.hdl.HDLSignal
+import synthesijer.hdl.HDLSimModule
 import synthesijer.hdl.HDLUtils
 import synthesijer.hdl.expr.HDLPreDefinedConstant
 import synthesijer.hdl.expr.HDLValue
-import synthesijer.hdl.tools.HDLSequencerToDot
-import synthesijer.hdl.tools.ResourceUsageTable
-import synthesijer.hdl.HDLSimModule
 
 trait ModuleFunc extends HDLModule{
   
@@ -120,7 +116,7 @@ class Instance(target:HDLInstance) {
   
 }
 
-class Port(val port:HDLPort) extends ExprItem{
+class Port(val port:HDLPort) extends ExprItem with ExprDestination{
   
 	def <= (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
 	
@@ -134,6 +130,8 @@ class Port(val port:HDLPort) extends ExprItem{
   
   def default(e:ExprItem):Unit = port.getSignal().setDefaultValue(e.toHDLExpr())
   
+  def width() : Int = port.getSignal().getWidth()
+  
 }
 
 trait ExprItem {
@@ -142,11 +140,22 @@ trait ExprItem {
   
 }
 
-class Signal(val signal:HDLSignal) extends ExprItem{
+trait ExprDestination {
+  	def <= (e:ExprItem);
+  	def <= (t:(State, ExprItem));
+  	def <= (t:(State, Int, ExprItem));
+  	def width():Int;
+}
+
+class Signal(val signal:HDLSignal) extends ExprItem with ExprDestination{
 	
 	def <= (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
 	
 	def <= (t:(State, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2.toHDLExpr)
+
+	def <= (t:(State, Int, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2, t._3.toHDLExpr)
+	
+	def width() : Int = signal.getWidth()
 
 	def reset(e:ExprItem): Unit = signal.setResetValue(e.toHDLExpr)
 	

@@ -18,7 +18,7 @@ class Sequencer(seq: HDLSequencer){
     uid = uid + 1
     return s
 	}
-	  
+	  	
 }
 
 class State(val state: SequencerState){
@@ -33,4 +33,8 @@ class State(val state: SequencerState){
     return t._2
   }
 	
+  def max_delay(v:Int):Unit = {
+	  state.setMaxConstantDelay(v)
+	}
+
 }

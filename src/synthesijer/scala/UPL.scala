@@ -1,10 +1,37 @@
 package synthesijer.scala
 
-class UPLIn(m:Module, prefix:String, width:Int){
+class UPLIn(val m:Module, prefix:String, val width:Int){
 	val req = m.inP(prefix  + "Req")
   val en = m.inP(prefix  + "En")
   val ack = m.outP(prefix + "Ack")
   val data = m.inP(prefix  + "Data", width)
+  
+  ack.default(Constant.LOW)
+  
+  def templateRecv(seq:Sequencer, t:Array[ExprDestination]):(State,State) = {
+	  val entry = seq.add()
+	  val exit = seq.add()
+	  
+	  ack <= (entry, Constant.HIGH)
+	  val s0 = entry -> (en, seq.add)
+	  	  
+	  var s = s0
+	  var i = 0
+	  for(item <- t){
+		  item <= (s, i, data)
+			if(s == s0){
+			  s = s0 -> seq.add()
+			}else{
+				i = i + 1
+				s.max_delay(i)
+			}
+	  }
+	  
+	  s -> (m.expr(Op.not, en, Constant.LOW), exit)
+	  
+	  return (entry, exit)
+	}
+  
 }
 
 class UPLOut(m:Module, prefix:String, width:Int){
@@ -12,4 +39,27 @@ class UPLOut(m:Module, prefix:String, width:Int){
   val en = m.outP(prefix + "En")
   val ack = m.inP(prefix  + "Ack")
   val data = m.outP(prefix + "Data", width)
+}
+
+
+object UPLIn {
+  
+  def main(args:Array[String]) = {
+    val m = new Module("uplin_recv", "clk", "reset")
+	  val u = new UPLIn(m, "UPL_", 32)
+
+    var lst = for{
+      i <- 0 to 10
+      v = m.signal(32)
+    }yield(v)
+      
+    val seq = m.sequencer("recv_test")
+    val (entry, exit) = u.templateRecv(seq, lst.toArray)
+    seq.idle -> entry
+    exit -> seq.idle
+    
+    m.genVHDL()
+    
+  }
+  
 }

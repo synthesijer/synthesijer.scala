@@ -1,7 +1,5 @@
 package synthesijer.scala
 
-import java.io.FileOutputStream
-import java.io.PrintWriter
 import synthesijer.hdl.HDLExpr
 import synthesijer.hdl.HDLInstance
 import synthesijer.hdl.HDLModule
@@ -9,13 +7,10 @@ import synthesijer.hdl.HDLOp
 import synthesijer.hdl.HDLPort
 import synthesijer.hdl.HDLPrimitiveType
 import synthesijer.hdl.HDLSignal
+import synthesijer.hdl.HDLSimModule
 import synthesijer.hdl.HDLUtils
 import synthesijer.hdl.expr.HDLPreDefinedConstant
 import synthesijer.hdl.expr.HDLValue
-import synthesijer.hdl.tools.HDLSequencerToDot
-import synthesijer.hdl.tools.ResourceUsageTable
-import synthesijer.hdl.HDLSimModule
-import synthesijer.hdl.HDLType
 
 trait ModuleFunc extends HDLModule{
   
@@ -24,9 +19,7 @@ trait ModuleFunc extends HDLModule{
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
     
-  def port(name:String, dir:HDLPort.DIR, t:HDLType) : Port = new Port(newPort(name, dir, t))
-
-	def outP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
+  def outP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
 	
   def inP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
@@ -120,10 +113,10 @@ class Instance(target:HDLInstance) {
 	
   def signalFor(name:String) = new Signal(target.getSignalForPort(name))
   def signalFor(p:Port) = new Signal(target.getSignalForPort(p.port.getName()))
-
+  
 }
 
-class Port(val port:HDLPort) extends ExprItem{
+class Port(val port:HDLPort) extends ExprItem with ExprDestination{
   
 	def <= (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
 	
@@ -137,9 +130,8 @@ class Port(val port:HDLPort) extends ExprItem{
   
   def default(e:ExprItem):Unit = port.getSignal().setDefaultValue(e.toHDLExpr())
   
-  def get_type:HDLType = port.getType()
-
-  def dir:HDLPort.DIR = port.getDir()
+  def width() : Int = port.getSignal().getWidth()
+  
 }
 
 trait ExprItem {
@@ -148,20 +140,29 @@ trait ExprItem {
   
 }
 
-class Signal(val signal:HDLSignal) extends ExprItem{
+trait ExprDestination {
+  	def <= (e:ExprItem);
+  	def <= (t:(State, ExprItem));
+  	def <= (t:(State, Int, ExprItem));
+  	def width():Int;
+}
+
+class Signal(val signal:HDLSignal) extends ExprItem with ExprDestination{
 	
 	def <= (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
 	
 	def <= (t:(State, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2.toHDLExpr)
+
+	def <= (t:(State, Int, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2, t._3.toHDLExpr)
+	
+	def width() : Int = signal.getWidth()
 
 	def reset(e:ExprItem): Unit = signal.setResetValue(e.toHDLExpr)
 	
 	def toHDLExpr() = signal
 	
 	def default(e:ExprItem):Unit = signal.setDefaultValue(e.toHDLExpr())
-  
-  def get_type:HDLType = signal.getType()
-  
+
 }
 
 class Expr(val expr:HDLExpr) extends ExprItem{

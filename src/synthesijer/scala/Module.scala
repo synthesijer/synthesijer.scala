@@ -15,6 +15,7 @@ import synthesijer.hdl.expr.HDLValue
 import synthesijer.hdl.tools.HDLSequencerToDot
 import synthesijer.hdl.tools.ResourceUsageTable
 import synthesijer.hdl.HDLSimModule
+import synthesijer.hdl.HDLType
 
 trait ModuleFunc extends HDLModule{
   
@@ -23,7 +24,9 @@ trait ModuleFunc extends HDLModule{
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
     
-  def outP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
+  def port(name:String, dir:HDLPort.DIR, t:HDLType) : Port = new Port(newPort(name, dir, t))
+
+	def outP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
 	
   def inP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
@@ -117,7 +120,7 @@ class Instance(target:HDLInstance) {
 	
   def signalFor(name:String) = new Signal(target.getSignalForPort(name))
   def signalFor(p:Port) = new Signal(target.getSignalForPort(p.port.getName()))
-  
+
 }
 
 class Port(val port:HDLPort) extends ExprItem{
@@ -134,6 +137,9 @@ class Port(val port:HDLPort) extends ExprItem{
   
   def default(e:ExprItem):Unit = port.getSignal().setDefaultValue(e.toHDLExpr())
   
+  def get_type:HDLType = port.getType()
+
+  def dir:HDLPort.DIR = port.getDir()
 }
 
 trait ExprItem {
@@ -153,7 +159,9 @@ class Signal(val signal:HDLSignal) extends ExprItem{
 	def toHDLExpr() = signal
 	
 	def default(e:ExprItem):Unit = signal.setDefaultValue(e.toHDLExpr())
-
+  
+  def get_type:HDLType = signal.getType()
+  
 }
 
 class Expr(val expr:HDLExpr) extends ExprItem{

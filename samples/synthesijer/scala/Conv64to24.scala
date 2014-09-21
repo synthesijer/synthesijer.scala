@@ -12,7 +12,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   val reg = signal(64) 
   val seq = sequencer("main")
   
-  val KICK_THREASHOLD = 10
+  val KICK_THREASHOLD = 100
   
   val start = seq.idle -> (expr(Op.>, recv.count, KICK_THREASHOLD), seq.add())
   

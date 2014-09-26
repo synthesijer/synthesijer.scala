@@ -68,6 +68,8 @@ trait ModuleFunc extends HDLModule{
 
   def range(exp:ExprItem, b:Int, e:Int):ExprItem = expr(Op.take, expr(Op.>>>, exp, e), b - e + 1)
   
+  def ref(exp:ExprItem, i:Int):ExprItem = expr(Op.REF, exp, i)
+  
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{

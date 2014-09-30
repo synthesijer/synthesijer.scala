@@ -15,6 +15,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   
   val bram = new BRAM(this, "bram", width)
   val fifo = new FIFO_OUT(this, "fifo", width)
+  val write_count = signal(32);
   
   val seq = sequencer("main")
   
@@ -26,6 +27,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   bram.we.default(Constant.LOW)
   fifo.we.default(Constant.LOW)
   bram.address <= (seq.idle, offset)
+  write_count <= (seq.idle, Constant.VECTOR_ZERO)
   
   val write_addr = signal(32)
   write_addr <= (seq.idle, offset)
@@ -36,6 +38,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
     bram.address <= (s, write_addr)
     bram.dout <= (s, expr(Op.IF, test, write_addr, Constant.VECTOR_ZERO))
     bram.we <= (s, Constant.HIGH)
+    write_count <= (s, expr(Op.+, write_count, 1))
     return s
   }
 
@@ -48,6 +51,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   def gen_emit_entry():State = {
     val s = seq.add()
     bram.address <= (s, expr(Op.+, bram.address, 1))
+    write_count <= (s, expr(Op.+, write_count, 1))
     fifo.we <= (s, Constant.HIGH)
     fifo.dout <= (s, bram.din)
     return s
@@ -57,8 +61,8 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   val emit_seq = gen_emit_entry()
   seq.idle -> (init, init_seq)
   seq.idle -> (kick, gen_emit_prepare()) -> emit_seq
-  init_seq -> (expr(Op.==, write_addr, words-1), seq.idle)
-  emit_seq -> (expr(Op.==, bram.address, words), seq.idle)
+  init_seq -> (expr(Op.==, write_count, words-1), seq.idle)
+  emit_seq -> (expr(Op.==, write_count, words-1), seq.idle)
 }
 
 class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){

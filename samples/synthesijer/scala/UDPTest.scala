@@ -24,7 +24,8 @@ object UPLTest {
     val sequencer = m.sequencer("main")
     val idle = sequencer.idle
     
-    def wait_trigger(s:State):State = {
+    def wait_trigger():State = {
+      val s = sequencer.add()
     	uplout.req <= (s, Constant.LOW)
     	uplout.en <= (s, Constant.LOW)
     	uplout.data <= (s, Constant.VECTOR_ZERO)
@@ -32,7 +33,8 @@ object UPLTest {
     }
 
     val ack_ready = m.expr(Op.==, uplout.ack, Constant.HIGH)
-    def wait_ack_and_send_data(s:State):State = {
+    def wait_ack_and_send_data():State = {
+      val s = sequencer.add()
     	uplout.data <= (s, ipaddr)
     	uplout.en <= (s, m.expr(Op.IF, ack_ready, Constant.HIGH, Constant.LOW))
     	uplout.req <= (s, m.expr(Op.IF, ack_ready, Constant.LOW, Constant.HIGH))
@@ -40,32 +42,36 @@ object UPLTest {
     	return s
     }
     
-    def send_dest_addr(s:State):State = {
+    def send_dest_addr():State = {
+      val s = sequencer.add()
     	uplout.data <= (s, server_addr)
       return s
     }
 
-    def send_port(s:State):State = {
+    def send_port():State = {
+      val s = sequencer.add()
     	uplout.data <= (s, m.expr(Op.&, port, server_port))
       return s
     }
     
-    def send_length(s:State):State = {
+    def send_length():State = {
+      val s = sequencer.add()
       uplout.data <= (s, new Value(4, 32));
       return s
     }
     
-    def send_data(s:State):State = {
+    def send_data():State = {
+      val s = sequencer.add()
       uplout.data <= (s, new Value(0xDEADBEEF, 32));
       return s
     }
 
-    (idle -> (m.expr(Op.==, trigger, Constant.HIGH), wait_trigger(sequencer.add()))
-          -> (ack_ready, wait_ack_and_send_data(sequencer.add()))
-          -> send_dest_addr(sequencer.add())
-          -> send_port(sequencer.add())
-          -> send_length(sequencer.add())
-          -> send_data(sequencer.add()) -> idle)
+    (idle -> (m.expr(Op.==, trigger, Constant.HIGH), wait_trigger())
+          -> (ack_ready, wait_ack_and_send_data())
+          -> send_dest_addr()
+          -> send_port()
+          -> send_length()
+          -> send_data() -> idle)
           
     return m
   }

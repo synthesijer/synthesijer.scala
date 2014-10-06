@@ -22,29 +22,7 @@ object led {
 	  val sim = new SimModule(name)
 	  val inst = sim.instance(target, "U")
 	  
-	  val clk = sim.signal("clk")
-	  val reset = sim.signal("reset")
-	  val counter = sim.signal("counter", 32)
-
-	  val seq = sim.sequencer("main")
-	  seq.tick(10)
-
-	  val ss = seq.idle
-	  val s0 = seq.add("S0")
-	  ss -> s0 -> ss
-
-	  clk <= (ss, Constant.LOW)
-	  clk <= (s0, Constant.HIGH)
-
-	  val expr = sim.expr(Op.+, counter, 1)
-	  counter <= (ss, expr)
-	  counter <= (s0, expr)
-
-	  reset.reset(Constant.LOW)
-	  reset <= (ss, sim.expr(Op.IF,
-			                     sim.expr(Op.and, sim.expr(Op.>, counter, 3), sim.expr(Op.<, counter, 8)),
-			                     Constant.HIGH,
-			                     Constant.LOW))
+	  val (clk, reset, counter) = sim.system(10)
 
 	  inst.sysClk <= clk
 	  inst.sysReset <= reset

@@ -16,39 +16,39 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   
   val start = seq.idle -> (expr(Op.>, recv.count, KICK_THREASHOLD), seq.add())
   
-  recv.re.default(Constant.LOW)
-  send.we.default(Constant.LOW)
+  recv.re.default(LOW)
+  send.we.default(LOW)
   
   // (0) 64bitFIFO.re <= '1'
   val s0 = start -> seq.add()
-  recv.re <= (s0, Constant.HIGH)
+  recv.re <= (s0, HIGH)
   
   // (1) 64bitFIFO.re <= '0'
   val s1 = s0 -> seq.add()
-  recv.re <= (s1, Constant.LOW)
+  recv.re <= (s1, LOW)
   
   // (2) 24bitFIFO <- 64bitFIFO(23:0) // (23:0)
   //     reg <- 64bitFIFO(63:24)
   //     64bitFIFO.re <= '1'
   val s2 = s1 -> seq.add()
-  send.we <= (s2, Constant.HIGH)
+  send.we <= (s2, HIGH)
   send.dout <= (s2, range(recv.din, 23, 0))
   reg <= (s2, expr(Op.padding0, range(recv.din, 63, 24), 24))
-  recv.re <= (s2, Constant.HIGH)
+  recv.re <= (s2, HIGH)
   
   // (3) 24bitFIFO <- reg(23:0) // (47:24)
   //     reg <- reg >> 24 // remained (63:48)
   //     64bitFIFO.re <= '0'
   val s3 = s2 -> seq.add()
-  send.we <= (s3, Constant.HIGH)
+  send.we <= (s3, HIGH)
   send.dout <= (s3, range(reg, 23, 0))
   reg <= (s3, expr(Op.>>>, reg, 24))
-  recv.re <= (s3, Constant.LOW)
+  recv.re <= (s3, LOW)
   
   // (4) 24bitFIFO <- 64bitFIFO(7:0)&reg(15:0) // (7:0)&(63:48)
   //     reg <- 64bitFIFO(63:8)
   val s4 = s3 -> seq.add()
-  send.we <= (s4, Constant.HIGH)
+  send.we <= (s4, HIGH)
   send.dout <= (s4, expr(Op.concat, range(recv.din, 7, 0), range(reg, 15, 0)))
   reg <= (s4, expr(Op.padding0, range(recv.din, 63, 8), 8))
   
@@ -56,24 +56,24 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   //     reg <- reg >> 24 // remaiend (63:32)
   //     64bitFIFO.re <= '1'
   val s5 = s4 -> seq.add()
-  send.we <= (s5, Constant.HIGH)
+  send.we <= (s5, HIGH)
   send.dout <= (s5, range(reg, 23, 0))
   reg <= (s5, expr(Op.>>>, reg, 24))
-  recv.re <= (s5, Constant.HIGH)
+  recv.re <= (s5, HIGH)
   
   // (6) 24bitFIFO <- reg(23:0) // (55:32)
   //     reg <- reg >> 24 // remaind (63:56)
   //     64bitFIFO.re <= '0'
   val s6 = s5 -> seq.add()
-  send.we <= (s6, Constant.HIGH)
+  send.we <= (s6, HIGH)
   send.dout <= (s6, range(reg, 23, 0))
   reg <= (s6, expr(Op.>>>, reg, 24))
-  recv.re <= (s6, Constant.LOW)
+  recv.re <= (s6, LOW)
   
   // (7) 24bitFIFO <- 64bitFIFO(15:0)&reg(7:0) // (15:0)&(63:56)
   //     reg <- 64bitFIFO(63:16) // remained (63:16)
   val s7 = s6 -> seq.add()
-  send.we <= (s7, Constant.HIGH)
+  send.we <= (s7, HIGH)
   send.dout <= (s7, expr(Op.concat, range(recv.din, 15, 0), range(reg, 7, 0)))
   reg <= (s7, expr(Op.padding0, range(recv.din, 63, 16), 16))
   
@@ -81,21 +81,21 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   //     reg <- reg >> 24 // remained (63:40)
   //     64bitFIFO.re <= '1'
   val s8 = s7 -> seq.add()
-  send.we <= (s8, Constant.HIGH)
+  send.we <= (s8, HIGH)
   send.dout <= (s8, range(reg, 23, 0))
   reg <= (s8, expr(Op.>>>, reg, 24))
-  recv.re <= (s8, Constant.HIGH)
+  recv.re <= (s8, HIGH)
   
   // (9) 24bitFIFO <- reg(23:0) // (39:16)
   //     64bitFIFO.re <= '0'
   //     goto (2)
   val s9 = s8 -> seq.add()
-  send.we <= (s9, Constant.HIGH)
+  send.we <= (s9, HIGH)
   send.dout <= (s9, range(reg, 23, 0))
-  recv.re <= (s8, Constant.LOW)
+  recv.re <= (s8, LOW)
   
   val s10 = s9 -> seq.add()
-  send.we <= (s10, Constant.LOW)
+  send.we <= (s10, LOW)
   s10 -> (expr(Op.and, expr(Op.not, send.full), expr(Op.>, recv.count, KICK_THREASHOLD)), s2)
   
 }
@@ -112,11 +112,11 @@ class Conv64to24Sim(n:String) extends SimModule(n) {
   inst.sysReset <= reset
   
   val sig = signal("fe", 64)
-  sig <= new Value(0x0123456789abcdefL, 64)
+  sig <= value(0x0123456789abcdefL, 64)
   
-  inst.signalFor(m.recv.count) <= new Value(20, 32)
-  inst.signalFor(m.recv.din) <= new Value(0x0123456789abcdefL, 64)
-  inst.signalFor(m.send.full) <= Constant.LOW
+  inst.signalFor(m.recv.count) <= value(20, 32)
+  inst.signalFor(m.recv.din) <= value(0x0123456789abcdefL, 64)
+  inst.signalFor(m.send.full) <= LOW
   
 }
 

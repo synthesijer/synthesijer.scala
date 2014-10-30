@@ -6,13 +6,13 @@ class UPLIn(val m:Module, prefix:String, val width:Int){
   val ack = m.outP(prefix + "Ack")
   val data = m.inP(prefix  + "Data", width)
   
-  ack.default(Constant.LOW)
+  ack.default(m.LOW)
   
   def templateRecv(seq:Sequencer, t:Array[ExprDestination]):(State,State) = {
 	  val entry = seq.add()
 	  val exit = seq.add()
 	  
-	  ack <= (entry, Constant.HIGH)
+	  ack <= (entry, m.HIGH)
 	  val s0 = entry -> (en, seq.add)
 	  	  
 	  var s = s0
@@ -27,7 +27,7 @@ class UPLIn(val m:Module, prefix:String, val width:Int){
 			}
 	  }
 	  
-	  s -> (m.expr(Op.not, en, Constant.LOW), exit)
+	  s -> (m.expr(Op.not, en, m.LOW), exit)
 	  
 	  return (entry, exit)
 	}

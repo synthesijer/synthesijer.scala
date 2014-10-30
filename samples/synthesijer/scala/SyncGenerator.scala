@@ -34,61 +34,61 @@ class SyncGenerator(n:String, c:String, r:String) extends Module(n, c, r){
   val hsync_counter = signal("hsync_counter", 32)
   val vsync_counter = signal("vsync_counter", 32)
   
-  hsync_counter.reset(Constant.VECTOR_ZERO)
+  hsync_counter.reset(VECTOR_ZERO)
   
   val seq = sequencer("main")
   val s0 = seq.idle -> (wakeup, seq.add())
   
   hsync_counter <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_all-1),
-		                               Constant.VECTOR_ZERO,
-                                   expr(Op.+, hsync_counter, 1)))
+                                    VECTOR_ZERO,
+                                    expr(Op.+, hsync_counter, 1)))
   
   val hsync0 = signal()
   val hsync1 = signal()
   val hsync2 = signal()
   
-  hsync0 <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_all-1), Constant.LOW,
-                expr(Op.IF, expr(Op.==, hsync_counter, h_p-1), Constant.HIGH,
+  hsync0 <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_all-1), LOW,
+                expr(Op.IF, expr(Op.==, hsync_counter, h_p-1), HIGH,
                 hsync0)))
   hsync1 <= (s0, hsync0)
   hsync2 <= (s0, expr(Op.and, hsync1, expr(Op.not, hsync0)))
   
-  vsync_counter <= (s0, expr(Op.IF, expr(Op.==, vsync_counter, v_all), Constant.VECTOR_ZERO,
+  vsync_counter <= (s0, expr(Op.IF, expr(Op.==, vsync_counter, v_all), VECTOR_ZERO,
                         expr(Op.IF, hsync2, expr(Op.+, vsync_counter, 1),
                         vsync_counter)))
                         
   val v_valid = signal()
   val h_valid = signal()
   
-  v_valid <= (s0, expr(Op.IF, expr(Op.==, vsync_counter, v_pbd), Constant.LOW,
-                  expr(Op.IF, expr(Op.==, vsync_counter, v_pb), Constant.HIGH,
+  v_valid <= (s0, expr(Op.IF, expr(Op.==, vsync_counter, v_pbd), LOW,
+                  expr(Op.IF, expr(Op.==, vsync_counter, v_pb), HIGH,
                   v_valid)))
                 
-  h_valid <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_pbd-1), Constant.LOW,
-                  expr(Op.IF, expr(Op.==, hsync_counter, h_pb-1), Constant.HIGH,
+  h_valid <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_pbd-1), LOW,
+                  expr(Op.IF, expr(Op.==, hsync_counter, h_pb-1), HIGH,
                   h_valid)))
   
   val d_valid = signal()
   
-  d_valid <= expr(Op.IF, expr(Op.==, v_valid, Constant.HIGH), h_valid, Constant.LOW)
+  d_valid <= expr(Op.IF, expr(Op.==, v_valid, HIGH), h_valid, LOW)
                 
 
   val vsync0 = signal()
   val vsync1 = signal()
   val vsync2 = signal()
-  vsync0 <= (s0, expr(Op.IF, expr(Op.==, vsync_counter, v_all), Constant.LOW,
-                 expr(Op.IF, expr(Op.==, vsync_counter, v_p), Constant.HIGH,
+  vsync0 <= (s0, expr(Op.IF, expr(Op.==, vsync_counter, v_all), LOW,
+                 expr(Op.IF, expr(Op.==, vsync_counter, v_p), HIGH,
                  vsync0)))
   vsync1 <= (s0, vsync0)  
   vsync2 <= (s0, vsync1)  
   
-  fifo_rd.reset(Constant.LOW)
+  fifo_rd.reset(LOW)
   val data_en = expr(Op.and, expr(Op.==, hsync_counter, h_pb-1-2),
                 expr(Op.and, expr(Op.geq, vsync_counter, v_pb),
                            expr(Op.<, vsync_counter, v_pbd)))
                            
-  fifo_rd <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_pbd-1-2), Constant.LOW,
-                  expr(Op.IF, data_en, Constant.HIGH,
+  fifo_rd <= (s0, expr(Op.IF, expr(Op.==, hsync_counter, h_pbd-1-2), LOW,
+                  expr(Op.IF, data_en, HIGH,
                   fifo_rd)))
   
   DATA <= (s0, fifo_din)
@@ -109,7 +109,7 @@ object SyncGenerator{
     val instance = sim.instance(m, "U")
     instance.sysClk <= clk
     instance.sysReset <= reset
-    instance.signalFor(m.wakeup) <= sim.expr(Op.IF, sim.expr(Op.>, counter, 20), Constant.HIGH, Constant.LOW)
+    instance.signalFor(m.wakeup) <= sim.expr(Op.IF, sim.expr(Op.>, counter, 20), sim.HIGH, sim.LOW)
     sim.genVHDL()
   }
   

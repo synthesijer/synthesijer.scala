@@ -12,7 +12,7 @@ object led {
     val seq = m.sequencer("main")
     val s0 = seq.add()
     seq.idle -> s0
-    counter <= (seq.idle, Constant.VECTOR_ZERO)
+    counter <= (seq.idle, m.VECTOR_ZERO)
     counter <= (s0, m.expr(Op.+, counter, 1))
     return m
   }

@@ -13,8 +13,8 @@ class XORSHIFT32(n:String,c:String,r:String) extends Module(n,c,r){
   q <= range(y2, 31, 0)
   
   val m = sequencer("main")
-  y.reset(new Value(2463534242L, 64))
-  y <= (m.idle, new Value(2463534242L, 64))
+  y.reset(value(2463534242L, 64))
+  y <= (m.idle, value(2463534242L, 64))
   
   y0 <= expr(Op.xor, y, expr(Op.<<, y, 13)) // y ^= (y << 13)
   y1 <= expr(Op.>>>, y0, 17) // y = (y >> 17)

@@ -19,36 +19,36 @@ trait ModuleFunc extends HDLModule{
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
     
-  def outP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
-  def outP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
+  def outP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
+  def outP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
 	
-  def inP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
-  def inP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
+  def inP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
+  def inP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
   
-  def ioP(name:String) : Port = new Port(newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
-  def ioP(name:String, width:Int) : Port = new Port(newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))
+  def ioP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
+  def ioP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))
 
-  def signal(name:String, width:Integer) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genSignedType(width)))
+  def signal(name:String, width:Integer) : Signal = new Signal(this, newSignal(name, HDLPrimitiveType.genSignedType(width)))
   def signal(width:Integer) : Signal = {
-	  val sig = new Signal(newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
+	  val sig = new Signal(this, newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
 	  id = id + 1
 	  return sig
   }
 	
-	def signal(name:String) : Signal = new Signal(newSignal(name, HDLPrimitiveType.genBitType()))
+	def signal(name:String) : Signal = new Signal(this, newSignal(name, HDLPrimitiveType.genBitType()))
 	
 	def signal() : Signal = {
-	  val sig = new Signal(newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
+	  val sig = new Signal(this, newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
 	  id = id + 1
 	  return sig
 	}
   
-  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:ExprItem) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), e2.toHDLExpr()))
-  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr()))
-  def expr(op:HDLOp, e0:ExprItem) : Expr = new Expr(newExpr(op, e0.toHDLExpr()))
+  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), e2.toHDLExpr()))
+  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr()))
+  def expr(op:HDLOp, e0:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr()))
   
-  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
-  def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
+  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
+  def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
 
 // TODO 
 //  def expr(op:HDLOp, e0:ExprItem*) = {
@@ -56,9 +56,9 @@ trait ModuleFunc extends HDLModule{
   
   def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
   
-  def instance(target:Module, name:String) : Instance = new Instance(newModuleInstance(target, name))
+  def instance(target:Module, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
   
-  def instance(target:HDLModule, name:String) : Instance = new Instance(newModuleInstance(target, name))
+  def instance(target:HDLModule, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
   
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
 
@@ -70,13 +70,23 @@ trait ModuleFunc extends HDLModule{
   
   def ref(exp:ExprItem, i:Int):ExprItem = expr(Op.REF, exp, i)
   
+  def value(n:Long, width:Int) = new Value(this, n, width);
+  
+  val VECTOR_ZERO = new Constant(this, HDLPreDefinedConstant.VECTOR_ZERO)
+  val ZERO = new Constant(this, HDLPreDefinedConstant.INTEGER_ZERO)
+  val ONE = new Constant(this, HDLPreDefinedConstant.INTEGER_ONE)
+  val TRUE = new Constant(this, HDLPreDefinedConstant.BOOLEAN_TRUE)
+  val FALSE = new Constant(this, HDLPreDefinedConstant.BOOLEAN_FALSE)
+  val LOW = new Constant(this, HDLPreDefinedConstant.LOW)
+  val HIGH = new Constant(this, HDLPreDefinedConstant.HIGH)
+
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
 	  def this(name:String) = this(name, "clk", "reset")
 	  
-	  val sysClk = new Signal(getSysClk().getSignal())
-	  val sysReset = new Signal(getSysReset().getSignal())
+	  val sysClk = new Signal(this, getSysClk().getSignal())
+	  val sysReset = new Signal(this, getSysReset().getSignal())
 
 }
 
@@ -94,31 +104,31 @@ class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
 	  val s0 = seq.add("S0")
 	  ss -> s0 -> ss
 
-	  clk <= (ss, Constant.LOW)
-	  clk <= (s0, Constant.HIGH)
+	  clk <= (ss, LOW)
+	  clk <= (s0, HIGH)
 
 	  val countup = expr(Op.+, counter, 1)
 	  counter <= (s0, countup)
 
-	  reset.reset(Constant.LOW)
-	  reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), Constant.HIGH, Constant.LOW))
+	  reset.reset(LOW)
+	  reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW))
 	  
 	  return (clk, reset, counter)
 	}
 	
 }  
 
-class Instance(target:HDLInstance) {
+class Instance(module:ModuleFunc, target:HDLInstance) {
   
-	val sysClk = new Signal(target.getSignalForPort(target.getSubModule().getSysClkName()))
-  val sysReset = new Signal(target.getSignalForPort(target.getSubModule().getSysResetName()))
+	val sysClk = new Signal(module, target.getSignalForPort(target.getSubModule().getSysClkName()))
+  val sysReset = new Signal(module, target.getSignalForPort(target.getSubModule().getSysResetName()))
 	
-  def signalFor(name:String) = new Signal(target.getSignalForPort(name))
-  def signalFor(p:Port) = new Signal(target.getSignalForPort(p.port.getName()))
+  def signalFor(name:String) = new Signal(module, target.getSignalForPort(name))
+  def signalFor(p:Port) = new Signal(module, target.getSignalForPort(p.port.getName()))
   
 }
 
-class Port(val port:HDLPort) extends ExprItem with ExprDestination{
+class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with ExprDestination{
   
 	def <= (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
 	
@@ -136,7 +146,7 @@ class Port(val port:HDLPort) extends ExprItem with ExprDestination{
   
 }
 
-trait ExprItem {
+abstract class ExprItem(val module:ModuleFunc) {
   
 	def toHDLExpr() : HDLExpr
   
@@ -149,7 +159,7 @@ trait ExprDestination {
   	def width():Int;
 }
 
-class Signal(val signal:HDLSignal) extends ExprItem with ExprDestination{
+class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) with ExprDestination{
 	
 	def <= (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
 	
@@ -167,13 +177,13 @@ class Signal(val signal:HDLSignal) extends ExprItem with ExprDestination{
 
 }
 
-class Expr(val expr:HDLExpr) extends ExprItem{
+class Expr(module:ModuleFunc, val expr:HDLExpr) extends ExprItem(module){
   
 	def toHDLExpr() = expr
 
 }
 
-class Value(n:Long, width:Int) extends ExprItem{
+class Value(module:ModuleFunc, n:Long, width:Int) extends ExprItem(module){
 	val value = new HDLValue(n.toString(), HDLPrimitiveType.genVectorType(width))
 	
 	def toHDLExpr() = value
@@ -190,21 +200,9 @@ object Utils {
 
 }
 
-sealed abstract class Constant(val v:HDLPreDefinedConstant) extends ExprItem{
+class Constant(module:ModuleFunc, val v:HDLPreDefinedConstant) extends ExprItem(module){
     val name = toString
     def toHDLExpr() = v
-}
-
-object Constant{
-  
-  case object VECTOR_ZERO extends Constant(HDLPreDefinedConstant.VECTOR_ZERO)
-  case object ZERO extends Constant(HDLPreDefinedConstant.INTEGER_ZERO)
-  case object ONE extends Constant(HDLPreDefinedConstant.INTEGER_ONE)
-  case object TRUE extends Constant(HDLPreDefinedConstant.BOOLEAN_TRUE)
-  case object FALSE extends Constant(HDLPreDefinedConstant.BOOLEAN_FALSE)
-  case object LOW extends Constant(HDLPreDefinedConstant.LOW)
-  case object HIGH extends Constant(HDLPreDefinedConstant.HIGH)
-
 }
 
 object Op{

@@ -22,12 +22,12 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   val busy_reg = signal()
   busy <= expr(Op.or, busy_reg, expr(Op.or, kick, init))
   busy_reg <= (seq.idle, expr(Op.or, kick, init))
-  busy_reg.default(Constant.HIGH)
+  busy_reg.default(HIGH)
 
-  bram.we.default(Constant.LOW)
-  fifo.we.default(Constant.LOW)
+  bram.we.default(LOW)
+  fifo.we.default(LOW)
   bram.address <= (seq.idle, offset)
-  write_count <= (seq.idle, Constant.VECTOR_ZERO)
+  write_count <= (seq.idle, VECTOR_ZERO)
   
   val write_addr = signal(32)
   write_addr <= (seq.idle, offset)
@@ -36,8 +36,8 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
     val s = seq.add()
     write_addr <= (s, expr(Op.+, write_addr, 1))
     bram.address <= (s, write_addr)
-    bram.dout <= (s, expr(Op.IF, test, write_addr, Constant.VECTOR_ZERO))
-    bram.we <= (s, Constant.HIGH)
+    bram.dout <= (s, expr(Op.IF, test, write_addr, VECTOR_ZERO))
+    bram.we <= (s, HIGH)
     write_count <= (s, expr(Op.+, write_count, 1))
     return s
   }
@@ -52,7 +52,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
     val s = seq.add()
     bram.address <= (s, expr(Op.+, bram.address, 1))
     write_count <= (s, expr(Op.+, write_count, 1))
-    fifo.we <= (s, Constant.HIGH)
+    fifo.we <= (s, HIGH)
     fifo.dout <= (s, bram.din)
     return s
   }
@@ -83,23 +83,23 @@ class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
 	val s0 = seq.add("S0")
 	ss -> s0 -> ss
 
-	clk <= (ss, Constant.LOW)
-	clk <= (s0, Constant.HIGH)
+	clk <= (ss, LOW)
+	clk <= (s0, HIGH)
 
 	val countup = expr(Op.+, counter, 1)
 	counter <= (s0, countup)
 
-	reset.reset(Constant.LOW)
-	reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), Constant.HIGH, Constant.LOW))
+	reset.reset(LOW)
+	reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW))
 	
-	inst.signalFor(target.kick) <= expr(Op.IF, expr(Op.==, counter, 200), Constant.HIGH, Constant.LOW)
-	inst.signalFor(target.init) <= expr(Op.IF, expr(Op.==, counter, 10), Constant.HIGH, Constant.LOW)
-	inst.signalFor(target.test) <= Constant.HIGH
+	inst.signalFor(target.kick) <= expr(Op.IF, expr(Op.==, counter, 200), HIGH, LOW)
+	inst.signalFor(target.init) <= expr(Op.IF, expr(Op.==, counter, 10), HIGH, LOW)
+	inst.signalFor(target.test) <= HIGH
 			
 	inst.sysClk <= clk
 	inst.sysReset <= reset
 
-	inst.signalFor(target.offset) <= Constant.VECTOR_ZERO
+	inst.signalFor(target.offset) <= VECTOR_ZERO
 	ram.signalFor("address_b") <= inst.signalFor(target.bram.address)
 	ram.signalFor("we_b") <= inst.signalFor(target.bram.we)
 	inst.signalFor(target.bram.din) <= ram.signalFor("dout_b") 

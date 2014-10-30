@@ -17,27 +17,27 @@ object UPLTest {
     val trigger = m.inP("trigger")
   
     // reset
-    uplout.req.reset(Constant.LOW)
-    uplout.en.reset(Constant.LOW)
-    uplin.ack.reset(Constant.LOW)
+    uplout.req.reset(m.LOW)
+    uplout.en.reset(m.LOW)
+    uplin.ack.reset(m.LOW)
  
     val sequencer = m.sequencer("main")
     val idle = sequencer.idle
     
     def wait_trigger():State = {
       val s = sequencer.add()
-    	uplout.req <= (s, Constant.LOW)
-    	uplout.en <= (s, Constant.LOW)
-    	uplout.data <= (s, Constant.VECTOR_ZERO)
+    	uplout.req <= (s, m.LOW)
+    	uplout.en <= (s, m.LOW)
+    	uplout.data <= (s, m.VECTOR_ZERO)
     	return s
     }
 
-    val ack_ready = m.expr(Op.==, uplout.ack, Constant.HIGH)
+    val ack_ready = m.expr(Op.==, uplout.ack, m.HIGH)
     def wait_ack_and_send_data():State = {
       val s = sequencer.add()
     	uplout.data <= (s, ipaddr)
-    	uplout.en <= (s, m.expr(Op.IF, ack_ready, Constant.HIGH, Constant.LOW))
-    	uplout.req <= (s, m.expr(Op.IF, ack_ready, Constant.LOW, Constant.HIGH))
+    	uplout.en <= (s, m.expr(Op.IF, ack_ready, m.HIGH, m.LOW))
+    	uplout.req <= (s, m.expr(Op.IF, ack_ready, m.LOW, m.HIGH))
     	uplout.data <= (s, ipaddr)
     	return s
     }
@@ -56,17 +56,17 @@ object UPLTest {
     
     def send_length():State = {
       val s = sequencer.add()
-      uplout.data <= (s, new Value(4, 32));
+      uplout.data <= (s, m.value(4, 32));
       return s
     }
     
     def send_data():State = {
       val s = sequencer.add()
-      uplout.data <= (s, new Value(0xDEADBEEF, 32));
+      uplout.data <= (s, m.value(0xDEADBEEF, 32));
       return s
     }
 
-    (idle -> (m.expr(Op.==, trigger, Constant.HIGH), wait_trigger())
+    (idle -> (m.expr(Op.==, trigger, m.HIGH), wait_trigger())
           -> (ack_ready, wait_ack_and_send_data())
           -> send_dest_addr()
           -> send_port()

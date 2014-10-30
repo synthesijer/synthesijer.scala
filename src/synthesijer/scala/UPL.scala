@@ -27,7 +27,7 @@ class UPLIn(val m:Module, prefix:String, val width:Int){
 			}
 	  }
 	  
-	  s -> (m.expr(Op.not, en, m.LOW), exit)
+	  s -> (en!, exit)
 	  
 	  return (entry, exit)
 	}

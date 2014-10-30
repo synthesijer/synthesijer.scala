@@ -43,12 +43,12 @@ trait ModuleFunc extends HDLModule{
 	  return sig
 	}
   
-  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), e2.toHDLExpr()))
-  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr()))
-  def expr(op:HDLOp, e0:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr()))
+  private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), e2.toHDLExpr()))
+  private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr()))
+  private[scala] def expr(op:HDLOp, e0:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr()))
   
-  def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
-  def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
+  private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
+  private[scala] def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
 
 // TODO 
 //  def expr(op:HDLOp, e0:ExprItem*) = {
@@ -71,6 +71,14 @@ trait ModuleFunc extends HDLModule{
   def ref(exp:ExprItem, i:Int):ExprItem = expr(Op.REF, exp, i)
   
   def value(n:Long, width:Int) = new Value(this, n, width);
+  
+  def ?(c:ExprItem, e0:ExprItem, e1:ExprItem) = expr(Op.IF, c, e0, e1)
+  
+  def padding0(e:ExprItem, v:Int) = expr(Op.padding0, e, v)
+  
+  def padding(e:ExprItem, v:Int) = expr(Op.padding, e, v)
+  
+  def drop(e:ExprItem, v:Int) = expr(Op.drop, e, v)
   
   val VECTOR_ZERO = new Constant(this, HDLPreDefinedConstant.VECTOR_ZERO)
   val ZERO = new Constant(this, HDLPreDefinedConstant.INTEGER_ZERO)
@@ -149,6 +157,31 @@ class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with Ex
 abstract class ExprItem(val module:ModuleFunc) {
   
 	def toHDLExpr() : HDLExpr
+	
+	def + (e:ExprItem):ExprItem = module.expr(Op.+, this, e)
+	def + (v:Int) : ExprItem = module.expr(Op.+, this, v)
+	def - (e:ExprItem):ExprItem = module.expr(Op.+, this, e)
+	def - (v:Int) : ExprItem = module.expr(Op.-, this, v)
+	def and (e:ExprItem):ExprItem = module.expr(Op.and, this, e)
+	def or (e:ExprItem):ExprItem = module.expr(Op.or, this, e)
+	def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
+	def ! : ExprItem = module.expr(Op.not, this)
+	def == (e:ExprItem):ExprItem = module.expr(Op.==, this, e)
+	def == (v:Int) : ExprItem = module.expr(Op.==, this, v)
+	def < (e:ExprItem):ExprItem = module.expr(Op.<, this, e)
+	def < (v:Int) : ExprItem = module.expr(Op.<, this, v)
+	def > (e:ExprItem):ExprItem = module.expr(Op.>, this, e)
+	def > (v:Int) : ExprItem = module.expr(Op.>, this, v)
+	def leq (e:ExprItem):ExprItem = module.expr(Op.<=, this, e)
+	def leq (v:Int):ExprItem = module.expr(Op.<=, this, v)
+	def geq (e:ExprItem):ExprItem = module.expr(Op.>=, this, e)
+	def geq (v:Int):ExprItem = module.expr(Op.>=, this, v)
+	def /= (e:ExprItem):ExprItem = module.expr(Op./=, this, e)
+	def & (e:ExprItem):ExprItem = module.expr(Op.concat, this, e)
+	def concat (e:ExprItem):ExprItem = module.expr(Op.&, this, e)
+	def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
+	def >>> (v:Int):ExprItem = module.expr(Op.>>, this, v)
+	def << (v:Int):ExprItem = module.expr(Op.>>, this, v)
   
 }
 

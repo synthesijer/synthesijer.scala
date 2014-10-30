@@ -20,8 +20,8 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   val seq = sequencer("main")
   
   val busy_reg = signal()
-  busy <= expr(Op.or, busy_reg, expr(Op.or, kick, init))
-  busy_reg <= (seq.idle, expr(Op.or, kick, init))
+  busy <= (busy_reg or kick or init)
+  busy_reg <= (seq.idle, kick or init)
   busy_reg.default(HIGH)
 
   bram.we.default(LOW)
@@ -34,24 +34,24 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   
   def gen_init_entry():State = {
     val s = seq.add()
-    write_addr <= (s, expr(Op.+, write_addr, 1))
+    write_addr <= (s, (write_addr + 1))
     bram.address <= (s, write_addr)
-    bram.dout <= (s, expr(Op.IF, test, write_addr, VECTOR_ZERO))
+    bram.dout <= (s, ?(test, write_addr, VECTOR_ZERO))
     bram.we <= (s, HIGH)
-    write_count <= (s, expr(Op.+, write_count, 1))
+    write_count <= (s, (write_count + 1))
     return s
   }
 
   def gen_emit_prepare():State = {
     val s = seq.add()
-    bram.address <= (s, expr(Op.+, bram.address, 1))
+    bram.address <= (s, (bram.address + 1))
     return s
   }
 
   def gen_emit_entry():State = {
     val s = seq.add()
-    bram.address <= (s, expr(Op.+, bram.address, 1))
-    write_count <= (s, expr(Op.+, write_count, 1))
+    bram.address <= (s, (bram.address +1))
+    write_count <= (s, (write_count + 1))
     fifo.we <= (s, HIGH)
     fifo.dout <= (s, bram.din)
     return s
@@ -61,8 +61,8 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   val emit_seq = gen_emit_entry()
   seq.idle -> (init, init_seq)
   seq.idle -> (kick, gen_emit_prepare()) -> emit_seq
-  init_seq -> (expr(Op.==, write_count, words-1), seq.idle)
-  emit_seq -> (expr(Op.==, write_count, words-1), seq.idle)
+  init_seq -> (write_count == (words-1), seq.idle)
+  emit_seq -> (write_count == (words-1), seq.idle)
 }
 
 class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
@@ -86,14 +86,14 @@ class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
 	clk <= (ss, LOW)
 	clk <= (s0, HIGH)
 
-	val countup = expr(Op.+, counter, 1)
+	val countup = counter + 1
 	counter <= (s0, countup)
 
 	reset.reset(LOW)
-	reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW))
+	reset <= (ss, ?((counter > 3) and (counter < 8), HIGH, LOW))
 	
-	inst.signalFor(target.kick) <= expr(Op.IF, expr(Op.==, counter, 200), HIGH, LOW)
-	inst.signalFor(target.init) <= expr(Op.IF, expr(Op.==, counter, 10), HIGH, LOW)
+	inst.signalFor(target.kick) <= ?(counter == 200, HIGH, LOW)
+	inst.signalFor(target.init) <= ?(counter == 10, HIGH, LOW)
 	inst.signalFor(target.test) <= HIGH
 			
 	inst.sysClk <= clk

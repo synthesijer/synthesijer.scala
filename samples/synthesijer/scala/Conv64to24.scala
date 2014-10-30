@@ -14,7 +14,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   
   val KICK_THREASHOLD = 100
   
-  val start = seq.idle -> (expr(Op.>, recv.count, KICK_THREASHOLD), seq.add())
+  val start = seq.idle -> (recv.count > KICK_THREASHOLD, seq.add())
   
   recv.re.default(LOW)
   send.we.default(LOW)
@@ -33,7 +33,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   val s2 = s1 -> seq.add()
   send.we <= (s2, HIGH)
   send.dout <= (s2, range(recv.din, 23, 0))
-  reg <= (s2, expr(Op.padding0, range(recv.din, 63, 24), 24))
+  reg <= (s2, padding0(range(recv.din, 63, 24), 24))
   recv.re <= (s2, HIGH)
   
   // (3) 24bitFIFO <- reg(23:0) // (47:24)
@@ -42,15 +42,15 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   val s3 = s2 -> seq.add()
   send.we <= (s3, HIGH)
   send.dout <= (s3, range(reg, 23, 0))
-  reg <= (s3, expr(Op.>>>, reg, 24))
+  reg <= (s3, reg >>> 24)
   recv.re <= (s3, LOW)
   
   // (4) 24bitFIFO <- 64bitFIFO(7:0)&reg(15:0) // (7:0)&(63:48)
   //     reg <- 64bitFIFO(63:8)
   val s4 = s3 -> seq.add()
   send.we <= (s4, HIGH)
-  send.dout <= (s4, expr(Op.concat, range(recv.din, 7, 0), range(reg, 15, 0)))
-  reg <= (s4, expr(Op.padding0, range(recv.din, 63, 8), 8))
+  send.dout <= (s4, range(recv.din, 7, 0) & range(reg, 15, 0))
+  reg <= (s4, padding0(range(recv.din, 63, 8), 8))
   
   // (5) 24bitFIFO <- reg(23:0) // (31:8)
   //     reg <- reg >> 24 // remaiend (63:32)
@@ -58,7 +58,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   val s5 = s4 -> seq.add()
   send.we <= (s5, HIGH)
   send.dout <= (s5, range(reg, 23, 0))
-  reg <= (s5, expr(Op.>>>, reg, 24))
+  reg <= (s5, reg >>> 24)
   recv.re <= (s5, HIGH)
   
   // (6) 24bitFIFO <- reg(23:0) // (55:32)
@@ -67,15 +67,15 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   val s6 = s5 -> seq.add()
   send.we <= (s6, HIGH)
   send.dout <= (s6, range(reg, 23, 0))
-  reg <= (s6, expr(Op.>>>, reg, 24))
+  reg <= (s6, reg >>> 24)
   recv.re <= (s6, LOW)
   
   // (7) 24bitFIFO <- 64bitFIFO(15:0)&reg(7:0) // (15:0)&(63:56)
   //     reg <- 64bitFIFO(63:16) // remained (63:16)
   val s7 = s6 -> seq.add()
   send.we <= (s7, HIGH)
-  send.dout <= (s7, expr(Op.concat, range(recv.din, 15, 0), range(reg, 7, 0)))
-  reg <= (s7, expr(Op.padding0, range(recv.din, 63, 16), 16))
+  send.dout <= (s7, range(recv.din, 15, 0) & range(reg, 7, 0))
+  reg <= (s7, padding0(range(recv.din, 63, 16), 16))
   
   // (8) 24bitFIFO <- reg(23:0) // (39:16)
   //     reg <- reg >> 24 // remained (63:40)
@@ -83,7 +83,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   val s8 = s7 -> seq.add()
   send.we <= (s8, HIGH)
   send.dout <= (s8, range(reg, 23, 0))
-  reg <= (s8, expr(Op.>>>, reg, 24))
+  reg <= (s8, reg >>> 24)
   recv.re <= (s8, HIGH)
   
   // (9) 24bitFIFO <- reg(23:0) // (39:16)
@@ -96,7 +96,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   
   val s10 = s9 -> seq.add()
   send.we <= (s10, LOW)
-  s10 -> (expr(Op.and, expr(Op.not, send.full), expr(Op.>, recv.count, KICK_THREASHOLD)), s2)
+  s10 -> ((send.full!) and (recv.count > KICK_THREASHOLD), s2)
   
 }
 

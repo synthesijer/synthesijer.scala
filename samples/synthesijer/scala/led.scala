@@ -6,14 +6,14 @@ object led {
     val m = new Module("led")
     val q = m.outP("q")
     val counter = m.signal("counter", 32)
-    q <= m.expr(Op.REF, counter, 5)
+    q <= m.ref(counter, 5)
     
     // at main state, counter <= counter + 1
     val seq = m.sequencer("main")
     val s0 = seq.add()
     seq.idle -> s0
     counter <= (seq.idle, m.VECTOR_ZERO)
-    counter <= (s0, m.expr(Op.+, counter, 1))
+    counter <= (s0, counter + 1)
     return m
   }
   

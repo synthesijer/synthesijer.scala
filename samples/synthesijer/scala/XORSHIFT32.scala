@@ -16,9 +16,9 @@ class XORSHIFT32(n:String,c:String,r:String) extends Module(n,c,r){
   y.reset(value(2463534242L, 64))
   y <= (m.idle, value(2463534242L, 64))
   
-  y0 <= expr(Op.xor, y, expr(Op.<<, y, 13)) // y ^= (y << 13)
-  y1 <= expr(Op.>>>, y0, 17) // y = (y >> 17)
-  y2 <= expr(Op.xor, y1, expr(Op.<<, y1, 5)) // y ^= (y << 5)
+  y0 <= (y xor (y << 13)) // y ^= (y << 13)
+  y1 <= (y0 >>> 17) // y = (y >> 17)
+  y2 <= (y1 xor (y1 << 5)) // y ^= (y << 5)
   
   val s0 = m.idle -> m.add()
   q <= (s0, y2)

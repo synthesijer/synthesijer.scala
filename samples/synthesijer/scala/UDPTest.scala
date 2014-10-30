@@ -32,12 +32,12 @@ object UPLTest {
     	return s
     }
 
-    val ack_ready = m.expr(Op.==, uplout.ack, m.HIGH)
+    val ack_ready = uplout.ack == m.HIGH
     def wait_ack_and_send_data():State = {
       val s = sequencer.add()
     	uplout.data <= (s, ipaddr)
-    	uplout.en <= (s, m.expr(Op.IF, ack_ready, m.HIGH, m.LOW))
-    	uplout.req <= (s, m.expr(Op.IF, ack_ready, m.LOW, m.HIGH))
+    	uplout.en <= (s, m.?(ack_ready, m.HIGH, m.LOW))
+    	uplout.req <= (s, m.?(ack_ready, m.LOW, m.HIGH))
     	uplout.data <= (s, ipaddr)
     	return s
     }
@@ -50,7 +50,7 @@ object UPLTest {
 
     def send_port():State = {
       val s = sequencer.add()
-    	uplout.data <= (s, m.expr(Op.&, port, server_port))
+    	uplout.data <= (s, port & server_port)
       return s
     }
     
@@ -66,7 +66,7 @@ object UPLTest {
       return s
     }
 
-    (idle -> (m.expr(Op.==, trigger, m.HIGH), wait_trigger())
+    (idle -> (trigger == m.HIGH, wait_trigger())
           -> (ack_ready, wait_ack_and_send_data())
           -> send_dest_addr()
           -> send_port()

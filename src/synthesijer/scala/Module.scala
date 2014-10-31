@@ -180,8 +180,8 @@ abstract class ExprItem(val module:ModuleFunc) {
 	def & (e:ExprItem):ExprItem = module.expr(Op.concat, this, e)
 	def concat (e:ExprItem):ExprItem = module.expr(Op.&, this, e)
 	def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
-	def >>> (v:Int):ExprItem = module.expr(Op.>>, this, v)
-	def << (v:Int):ExprItem = module.expr(Op.>>, this, v)
+	def >>> (v:Int):ExprItem = module.expr(Op.>>>, this, v)
+	def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
   
 }
 

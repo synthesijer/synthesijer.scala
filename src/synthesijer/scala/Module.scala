@@ -160,25 +160,35 @@ abstract class ExprItem(val module:ModuleFunc) {
 	
 	def + (e:ExprItem):ExprItem = module.expr(Op.+, this, e)
 	def + (v:Int) : ExprItem = module.expr(Op.+, this, v)
-	def - (e:ExprItem):ExprItem = module.expr(Op.+, this, e)
+	
+	def - (e:ExprItem):ExprItem = module.expr(Op.-, this, e)
 	def - (v:Int) : ExprItem = module.expr(Op.-, this, v)
+	
 	def and (e:ExprItem):ExprItem = module.expr(Op.and, this, e)
 	def or (e:ExprItem):ExprItem = module.expr(Op.or, this, e)
 	def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
 	def ! : ExprItem = module.expr(Op.not, this)
+	
 	def == (e:ExprItem):ExprItem = module.expr(Op.==, this, e)
 	def == (v:Int) : ExprItem = module.expr(Op.==, this, v)
+	
 	def < (e:ExprItem):ExprItem = module.expr(Op.<, this, e)
 	def < (v:Int) : ExprItem = module.expr(Op.<, this, v)
+	
 	def > (e:ExprItem):ExprItem = module.expr(Op.>, this, e)
 	def > (v:Int) : ExprItem = module.expr(Op.>, this, v)
+	
 	def leq (e:ExprItem):ExprItem = module.expr(Op.<=, this, e)
 	def leq (v:Int):ExprItem = module.expr(Op.<=, this, v)
+	
 	def geq (e:ExprItem):ExprItem = module.expr(Op.>=, this, e)
 	def geq (v:Int):ExprItem = module.expr(Op.>=, this, v)
+	
 	def /= (e:ExprItem):ExprItem = module.expr(Op./=, this, e)
+	
 	def & (e:ExprItem):ExprItem = module.expr(Op.concat, this, e)
 	def concat (e:ExprItem):ExprItem = module.expr(Op.&, this, e)
+	
 	def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
 	def >>> (v:Int):ExprItem = module.expr(Op.>>>, this, v)
 	def << (v:Int):ExprItem = module.expr(Op.<<, this, v)

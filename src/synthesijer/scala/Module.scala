@@ -50,10 +50,6 @@ trait ModuleFunc extends HDLModule{
   private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
   private[scala] def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
 
-// TODO 
-//  def expr(op:HDLOp, e0:ExprItem*) = {
-//  }
-  
   def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
   
   def instance(target:Module, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
@@ -72,13 +68,15 @@ trait ModuleFunc extends HDLModule{
   
   def value(n:Long, width:Int) = new Value(this, n, width);
   
-  def ?(c:ExprItem, e0:ExprItem, e1:ExprItem) = expr(Op.IF, c, e0, e1)
+  def ?(c:ExprItem, e0:ExprItem, e1:ExprItem):ExprItem = expr(Op.IF, c, e0, e1)
   
   def padding0(e:ExprItem, v:Int) = expr(Op.padding0, e, v)
   
   def padding(e:ExprItem, v:Int) = expr(Op.padding, e, v)
   
   def drop(e:ExprItem, v:Int) = expr(Op.drop, e, v)
+  
+  def str2ary(s:String) = s.map(x => value(x, 8)).reduce((a:ExprItem, b:ExprItem) => (a & b))
   
   val VECTOR_ZERO = new Constant(this, HDLPreDefinedConstant.VECTOR_ZERO)
   val ZERO = new Constant(this, HDLPreDefinedConstant.INTEGER_ZERO)

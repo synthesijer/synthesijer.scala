@@ -68,7 +68,7 @@ class SyncGenerator(n:String, c:String, r:String) extends Module(n, c, r){
   
   val d_valid = signal()
   
-  d_valid <= ?(v_valid == HIGH, h_valid, LOW)
+  d_valid := ?(v_valid == HIGH, h_valid, LOW)
                 
 
   val vsync0 = signal()
@@ -88,9 +88,9 @@ class SyncGenerator(n:String, c:String, r:String) extends Module(n, c, r){
                   fifo_rd)))
   
   DATA <= (s0, fifo_din)
-  VSYNC <= (vsync2!)
-  HSYNC <= (hsync0!)
-  DE <= d_valid
+  VSYNC := (vsync2!)
+  HSYNC := (hsync0!)
+  DE := d_valid
 
 }
 
@@ -103,9 +103,9 @@ object SyncGenerator{
     val sim = new SimModule("sync_generator_sim")
     val (clk, reset, counter) = sim.system(10)
     val instance = sim.instance(m, "U")
-    instance.sysClk <= clk
-    instance.sysReset <= reset
-    instance.signalFor(m.wakeup) <= sim.?(counter > 20, sim.HIGH, sim.LOW)
+    instance.sysClk := clk
+    instance.sysReset := reset
+    instance.signalFor(m.wakeup) := sim.?(counter > 20, sim.HIGH, sim.LOW)
     sim.genVHDL()
   }
   

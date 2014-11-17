@@ -138,7 +138,7 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
 
 class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with ExprDestination{
   
-	def <= (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
+	def := (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
 	
 	def <= (t:(State, ExprItem)) : Unit = port.getSignal().setAssign(t._1.state, t._2.toHDLExpr)
 	
@@ -196,7 +196,7 @@ abstract class ExprItem(val module:ModuleFunc) {
 }
 
 trait ExprDestination {
-  	def <= (e:ExprItem);
+  	def := (e:ExprItem);
   	def <= (t:(State, ExprItem));
   	def <= (t:(State, Int, ExprItem));
   	def width():Int;
@@ -204,7 +204,7 @@ trait ExprDestination {
 
 class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) with ExprDestination{
 	
-	def <= (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
+	def := (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
 	
 	def <= (t:(State, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2.toHDLExpr)
 

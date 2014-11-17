@@ -20,7 +20,7 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
   val seq = sequencer("main")
   
   val busy_reg = signal()
-  busy <= (busy_reg or kick or init)
+  busy := (busy_reg or kick or init)
   busy_reg <= (seq.idle, kick or init)
   busy_reg.default(HIGH)
 
@@ -92,19 +92,19 @@ class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
 	reset.reset(LOW)
 	reset <= (ss, ?((counter > 3) and (counter < 8), HIGH, LOW))
 	
-	inst.signalFor(target.kick) <= ?(counter == 200, HIGH, LOW)
-	inst.signalFor(target.init) <= ?(counter == 10, HIGH, LOW)
-	inst.signalFor(target.test) <= HIGH
+	inst.signalFor(target.kick) := ?(counter == 200, HIGH, LOW)
+	inst.signalFor(target.init) := ?(counter == 10, HIGH, LOW)
+	inst.signalFor(target.test) := HIGH
 			
-	inst.sysClk <= clk
-	inst.sysReset <= reset
+	inst.sysClk := clk
+	inst.sysReset := reset
 
-	inst.signalFor(target.offset) <= VECTOR_ZERO
-	ram.signalFor("address_b") <= inst.signalFor(target.bram.address)
-	ram.signalFor("we_b") <= inst.signalFor(target.bram.we)
-	inst.signalFor(target.bram.din) <= ram.signalFor("dout_b") 
-	ram.signalFor("din_b") <= inst.signalFor(target.bram.dout)
-	ram.sysClk <= clk
+	inst.signalFor(target.offset) := VECTOR_ZERO
+	ram.signalFor("address_b") := inst.signalFor(target.bram.address)
+	ram.signalFor("we_b") := inst.signalFor(target.bram.we)
+	inst.signalFor(target.bram.din) := ram.signalFor("dout_b") 
+	ram.signalFor("din_b") := inst.signalFor(target.bram.dout)
+	ram.sysClk := clk
 }
 
 object Bram2Fifo {

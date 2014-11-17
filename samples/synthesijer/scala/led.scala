@@ -6,7 +6,7 @@ object led {
     val m = new Module("led")
     val q = m.outP("q")
     val counter = m.signal("counter", 32)
-    q <= m.ref(counter, 5)
+    q := m.ref(counter, 5)
     
     // at main state, counter <= counter + 1
     val seq = m.sequencer("main")
@@ -24,8 +24,8 @@ object led {
 	  
 	  val (clk, reset, counter) = sim.system(10)
 
-	  inst.sysClk <= clk
-	  inst.sysReset <= reset
+	  inst.sysClk := clk
+	  inst.sysReset := reset
 	  
 	  return sim
   }

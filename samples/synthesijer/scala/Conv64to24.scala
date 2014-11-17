@@ -108,15 +108,15 @@ class Conv64to24Sim(n:String) extends SimModule(n) {
   
   val m = new Conv64to24()
   val inst = instance(m, "U")
-  inst.sysClk <= clk
-  inst.sysReset <= reset
+  inst.sysClk := clk
+  inst.sysReset := reset
   
   val sig = signal("fe", 64)
-  sig <= value(0x0123456789abcdefL, 64)
+  sig := value(0x0123456789abcdefL, 64)
   
-  inst.signalFor(m.recv.count) <= value(20, 32)
-  inst.signalFor(m.recv.din) <= value(0x0123456789abcdefL, 64)
-  inst.signalFor(m.send.full) <= LOW
+  inst.signalFor(m.recv.count) := value(20, 32)
+  inst.signalFor(m.recv.din) := value(0x0123456789abcdefL, 64)
+  inst.signalFor(m.send.full) := LOW
   
 }
 

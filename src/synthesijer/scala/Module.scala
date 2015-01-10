@@ -66,7 +66,7 @@ trait ModuleFunc extends HDLModule{
   
   def ref(exp:ExprItem, i:Int):ExprItem = expr(Op.REF, exp, i)
   
-  def value(n:Long, width:Int) = new Value(this, n, width);
+  def value(n:Long, width:Int):ExprItem = new Value(this, n, width);
   
   def ?(c:ExprItem, e0:ExprItem, e1:ExprItem):ExprItem = expr(Op.IF, c, e0, e1)
   
@@ -142,7 +142,9 @@ class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with Ex
 	
 	def <= (t:(State, Int, ExprItem)) : Unit = port.getSignal().setAssign(t._1.state, t._2, t._3.toHDLExpr)
 	
-	def reset(e:ExprItem): Unit = port.getSignal().setResetValue(e.toHDLExpr)
+  def <= (e:StateExpr) : Unit = this <= (e.state, e.expr)
+
+  def reset(e:ExprItem): Unit = port.getSignal().setResetValue(e.toHDLExpr)
 	
   def toHDLExpr() = port.getSignal()
   
@@ -189,22 +191,27 @@ abstract class ExprItem(val module:ModuleFunc) {
 	
 	def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
 	def >>> (v:Int):ExprItem = module.expr(Op.>>>, this, v)
-	def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
-  
+  def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
+
+  def * (s:State):StateExpr = new StateExpr(s, this)
+
 }
 
 trait ExprDestination {
   	def := (e:ExprItem);
-  	def <= (t:(State, ExprItem));
+    def <= (t:(State, ExprItem));
   	def <= (t:(State, Int, ExprItem));
   	def width():Int;
+    def <= (e:StateExpr);
 }
 
 class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) with ExprDestination{
 	
 	def := (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
 	
-	def <= (t:(State, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2.toHDLExpr)
+  def <= (t:(State, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2.toHDLExpr)
+  
+  def <= (e:StateExpr) : Unit = this <= (e.state, e.expr)
 
 	def <= (t:(State, Int, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2, t._3.toHDLExpr)
 	

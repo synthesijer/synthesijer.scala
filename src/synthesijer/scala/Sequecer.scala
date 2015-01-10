@@ -38,9 +38,14 @@ class State(val state: SequencerState){
 	}
   
   def * (e:ExprItem) : StateExpr = {
-		return new StateExpr(this, e)
+    return new StateExpr(this, e)
   }
 
+  def | (s:StateExpr) : State = {
+    this -> (s.expr, s.state)
+    return this
+  }
+  
 }
 
 class StateExpr(val state:State, val expr:ExprItem){

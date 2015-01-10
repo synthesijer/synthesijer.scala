@@ -22,10 +22,10 @@ trait ModuleFunc extends HDLModule{
   def outP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
 	
-  def inP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
+  def inP(name:String) : BitPort = new BitPort(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
   def inP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
   
-  def ioP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
+  def ioP(name:String) : BitPort = new BitPort(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
   def ioP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))
 
   def signal(name:String, width:Integer) : Signal = new Signal(this, newSignal(name, HDLPrimitiveType.genSignedType(width)))
@@ -35,10 +35,10 @@ trait ModuleFunc extends HDLModule{
 	  return sig
   }
 	
-	def signal(name:String) : Signal = new Signal(this, newSignal(name, HDLPrimitiveType.genBitType()))
+	def signal(name:String) : BitSignal = new BitSignal(this, newSignal(name, HDLPrimitiveType.genBitType()))
 	
-	def signal() : Signal = {
-	  val sig = new Signal(this, newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
+	def signal() : BitSignal = {
+	  val sig = new BitSignal(this, newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
 	  id = id + 1
 	  return sig
 	}
@@ -134,6 +134,10 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
   
 }
 
+class BitPort(module:ModuleFunc, port:HDLPort) extends Port(module, port){
+  
+}
+
 class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with ExprDestination{
   
 	def := (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
@@ -194,6 +198,8 @@ abstract class ExprItem(val module:ModuleFunc) {
   def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
 
   def * (s:State):StateExpr = new StateExpr(s, this)
+    
+  def -> (s:State):StateExpr = new StateExpr(s, this)
 
 }
 
@@ -204,6 +210,9 @@ trait ExprDestination {
   	def width():Int;
     def <= (e:StateExpr);
 }
+
+class BitSignal(module:ModuleFunc, signal:HDLSignal) extends Signal(module, signal){ }
+
 
 class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) with ExprDestination{
 	

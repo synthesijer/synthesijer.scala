@@ -77,12 +77,6 @@ trait ModuleFunc extends HDLModule{
   def drop(e:ExprItem, v:Int) = expr(Op.drop, e, v)
   
   def str2ary(s:String) = s.map(x => value(x, 8)).reduce((a:ExprItem, b:ExprItem) => (a & b))
-
-  def decoder(sel:ExprItem, lst:List[(Int, Int)], w:Int) = 
-	lst.foldRight(value(0,w).asInstanceOf[ExprItem]){
-      (a,z) => ?(sel == a._1, value(a._2, w), z)
-	}
-
   
   val VECTOR_ZERO = new Constant(this, HDLPreDefinedConstant.VECTOR_ZERO)
   val ZERO = new Constant(this, HDLPreDefinedConstant.INTEGER_ZERO)
@@ -206,9 +200,6 @@ abstract class ExprItem(val module:ModuleFunc) {
   def * (s:State):StateExpr = new StateExpr(s, this)
     
   def -> (s:State):StateExpr = new StateExpr(s, this)
-  
-  def ref(i:Int):ExprItem = module.expr(Op.REF, this, i)
-
 
 }
 

@@ -2,11 +2,11 @@ package synthesijer.scala
 
 object led {
   
-  def generate_led() : Module = {
+  def generate_led(n:Int) : Module = {
     val m = new Module("led")
     val q = m.outP("q")
     val counter = m.signal("counter", 32)
-    q := m.ref(counter, 5)
+    q := counter.ref(n)
     
     // at main state, counter <= counter + 1
     val seq = m.sequencer("main")
@@ -32,7 +32,7 @@ object led {
 
   
   def main(args:Array[String]) = {
-    val led = generate_led()
+    val led = generate_led(5)
     val sim = generate_sim(led, "led_sim")
     led.genVHDL()
     sim.genVHDL()

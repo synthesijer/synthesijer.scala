@@ -2,9 +2,9 @@ package synthesijer.scala
 
 class XORSHIFT32(n:String,c:String,r:String) extends Module(n,c,r){
   
-	def this() = this("xorshift32", "clk", "reset")
+  def this() = this("xorshift32", "clk", "reset")
 	
-	val q = outP("q", 32)
+  val q = outP("q", 32)
   val y = signal(64)
   val y0 = signal(64)
   val y1 = signal(64)

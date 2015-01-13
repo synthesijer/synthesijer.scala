@@ -85,6 +85,11 @@ trait ModuleFunc extends HDLModule{
   val FALSE = new Constant(this, HDLPreDefinedConstant.BOOLEAN_FALSE)
   val LOW = new Constant(this, HDLPreDefinedConstant.LOW)
   val HIGH = new Constant(this, HDLPreDefinedConstant.HIGH)
+  
+  def decoder(sel:ExprItem, lst:List[(Int, Int)], w:Int) = 
+	lst.foldRight(value(0,w)){
+      (a,z) => ?(sel == a._1, value(a._2, w), z)
+	}
 
 }
 
@@ -173,8 +178,13 @@ abstract class ExprItem(val module:ModuleFunc) {
 	def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
 	def ! : ExprItem = module.expr(Op.not, this)
 	
-	def == (e:ExprItem):ExprItem = module.expr(Op.==, this, e)
-	def == (v:Int) : ExprItem = module.expr(Op.==, this, v)
+	def == (e:ExprItem):ExprItem = module.expr(Op.neq, this, e)
+	def == (v:Int) : ExprItem = module.expr(Op.neq, this, v)
+	
+	def != (e:ExprItem) : ExprItem = module.expr(Op.neq, this, e)
+	def != (v:Int) : ExprItem = module.expr(Op.neq, this, v)
+	
+	def /= (v:Int) : ExprItem = module.expr(Op.==, this, v)
 	
 	def < (e:ExprItem):ExprItem = module.expr(Op.<, this, e)
 	def < (v:Int) : ExprItem = module.expr(Op.<, this, v)
@@ -195,11 +205,15 @@ abstract class ExprItem(val module:ModuleFunc) {
 	
 	def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
 	def >>> (v:Int):ExprItem = module.expr(Op.>>>, this, v)
-  def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
+	def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
 
-  def * (s:State):StateExpr = new StateExpr(s, this)
-    
-  def -> (s:State):StateExpr = new StateExpr(s, this)
+	def * (s:State):StateExpr = new StateExpr(s, this)
+	  
+	def -> (s:State):StateExpr = new StateExpr(s, this)
+	
+    def ref(i:Int):ExprItem = module.ref(this, i)
+
+    def range(b:Int, e:Int):ExprItem = module.range(this, b, e)
 
 }
 

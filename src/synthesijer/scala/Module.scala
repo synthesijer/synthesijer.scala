@@ -18,6 +18,7 @@ trait ModuleFunc extends HDLModule{
   	
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
+  def genVHDLTmpl() = Utils.genVHDLTmpl(this)
     
   def outP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
@@ -268,6 +269,21 @@ object Utils {
   def genVerilog(m:HDLModule) = HDLUtils.generate(m, HDLUtils.VHDL);
   
   def toHDLValue(num:Int) = new HDLValue(num.toString, HDLPrimitiveType.genIntegerType())
+
+  def genVHDLTmpl(m:HDLModule) = {
+    println("component " + m.getName())
+    if(m.getParameters().length > 0){
+      println("generic (")
+      println(m.getParameters().mkString("  ", ";\n  ", ""))
+      println(");")
+    }
+    println("port (")
+    println((for(p <- m.getPorts) yield {
+              "%s : %s %s".format(p.getName(), p.getDir().getVHDL(), p.getType().asInstanceOf[HDLPrimitiveType].getVHDL(false))
+            }).mkString("  ", ";\n  ", ""))
+    println(");")
+    println("end component " + m.getName() + ";")
+  }
 
 }
 

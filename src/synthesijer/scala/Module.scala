@@ -181,8 +181,8 @@ abstract class ExprItem(val module:ModuleFunc) {
 	def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
 	def ! : ExprItem = module.expr(Op.not, this)
 	
-	def == (e:ExprItem):ExprItem = module.expr(Op.neq, this, e)
-	def == (v:Int) : ExprItem = module.expr(Op.neq, this, v)
+	def == (e:ExprItem):ExprItem = module.expr(Op.eq, this, e)
+	def == (v:Int) : ExprItem = module.expr(Op.eq, this, v)
 	
 	def != (e:ExprItem) : ExprItem = module.expr(Op.neq, this, e)
 	def != (v:Int) : ExprItem = module.expr(Op.neq, this, v)

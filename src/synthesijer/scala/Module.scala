@@ -91,7 +91,9 @@ trait ModuleFunc extends HDLModule{
 	lst.foldRight(value(0,w)){
       (a,z) => ?(sel == a._1, value(a._2, w), z)
 	}
-
+  
+  def genSimModule():SimpleSimModule = new SimpleSimModule(getName() + "_sim", this)
+  
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
@@ -129,6 +131,37 @@ class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
 	}
 	
 }  
+
+class SimpleSimModule(name:String, target:ModuleFunc) extends SimModule(name){
+  
+  val inst = instance(target, "U")
+  val (clk, reset, counter) = system(4)
+  inst.sysClk := clk
+  inst.sysReset := reset
+
+  val ports = for(p <- target.getPorts if (p.getName() != "clk" && p.getName() != "reset")) yield(p)
+  val pairs =
+  (for(p <- ports;
+   val s = if(p.getSignal().getWidth() > 1){
+	           signal(p.getName(), p.getSignal().getWidth())
+           }else{
+             signal(p.getName())
+           }
+   ) yield(p,s)).foldRight(Map.empty[HDLPort, Signal]){
+    (t,z) => z + (t._1 -> t._2) 
+  }
+    
+  for((p, s) <- pairs){
+    if(p.isOutput()){
+      s := inst.signalFor(p.getName())
+    }else{ // input
+      inst.signalFor(p.getName()) := s
+    }
+  }
+  
+  def signalFor(p:Port):Option[Signal] = pairs.get(p.port)
+  
+}
 
 class Instance(module:ModuleFunc, target:HDLInstance) {
   
@@ -221,6 +254,8 @@ abstract class ExprItem(val module:ModuleFunc) {
 	def ref(i:Int):ExprItem = module.ref(this, i)
 
 	def range(b:Int, e:Int):ExprItem = module.range(this, b, e)
+  
+  def ?(a:ExprItem, b:ExprItem) = module.?(this, a, b)
 
 }
 

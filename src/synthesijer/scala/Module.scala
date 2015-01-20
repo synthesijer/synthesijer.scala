@@ -88,9 +88,9 @@ trait ModuleFunc extends HDLModule{
   val HIGH = new Constant(this, HDLPreDefinedConstant.HIGH)
   
   def decoder(sel:ExprItem, lst:List[(Int, Int)], w:Int) = 
-	lst.foldRight(value(0,w)){
-      (a,z) => ?(sel == a._1, value(a._2, w), z)
-	}
+    lst.foldRight(value(0,w)){
+	  (a,z) => ?(sel == a._1, value(a._2, w), z)
+  }
   
   def genSimModule():SimpleSimModule = new SimpleSimModule(getName() + "_sim", this)
   

@@ -22,9 +22,11 @@ trait ModuleFunc extends HDLModule{
     
   def outP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
+  def outSignedP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genSignedType(width)))
 	
   def inP(name:String) : BitPort = new BitPort(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
   def inP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
+  def inSignedP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genSignedType(width)))
   
   def ioP(name:String) : BitPort = new BitPort(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
   def ioP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))

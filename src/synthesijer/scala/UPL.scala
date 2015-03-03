@@ -8,6 +8,7 @@ class UPLIn(val m:Module, prefix:String, val width:Int){
   
   ack.default(m.LOW)
   
+  // !!! not yet completed
   def templateRecv(seq:Sequencer, t:Array[ExprDestination]):(State,State) = {
 	  val entry = seq.add()
 	  val exit = seq.add()

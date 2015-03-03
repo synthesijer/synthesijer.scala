@@ -11,6 +11,7 @@ import synthesijer.hdl.HDLSimModule
 import synthesijer.hdl.HDLUtils
 import synthesijer.hdl.expr.HDLPreDefinedConstant
 import synthesijer.hdl.expr.HDLValue
+import synthesijer.tools.xilinx.HDLModuleToComponentXML
 
 trait ModuleFunc extends HDLModule{
   
@@ -19,6 +20,7 @@ trait ModuleFunc extends HDLModule{
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
   def genVHDLTmpl() = Utils.genVHDLTmpl(this)
+  def genComponentXML() = HDLModuleToComponentXML.conv(this, null, "vendor", "user");
     
   def outP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
   def outP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))

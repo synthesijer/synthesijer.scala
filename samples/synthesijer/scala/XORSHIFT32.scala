@@ -43,5 +43,6 @@ object XORSHIFT32{
     val s = new XORSHIFT32Sim(m)
     m.genVHDL()
     s.genVHDL()
+    m.genComponentXML()
   }
 }

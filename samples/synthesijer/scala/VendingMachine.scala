@@ -66,5 +66,6 @@ object VendingMachine{
     val m2 = new VendingMachine2()
     m2.genVHDL()
     m2.visualize_statemachine()
+    m2.genComponentXML()
   }
 }

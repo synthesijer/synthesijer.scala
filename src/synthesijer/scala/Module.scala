@@ -105,7 +105,7 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
 	  
 	  val sysClk = new Signal(this, getSysClk().getSignal())
 	  val sysReset = new Signal(this, getSysReset().getSignal())
-
+    
 }
 
 class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
@@ -286,6 +286,8 @@ class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) w
   def is (e:StateExpr) : Unit = this <= (e.state, e.expr)
 
 	def <= (t:(State, Int, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2, t._3.toHDLExpr)
+  
+  def := (t:(Sequencer, ExprItem)) : Unit = signal.setAssignForSequencer(t._1.seq, t._2.toHDLExpr) 
 	
 	def width() : Int = signal.getWidth()
 
@@ -294,6 +296,8 @@ class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) w
 	def toHDLExpr() = signal
 	
 	def default(e:ExprItem):Unit = signal.setDefaultValue(e.toHDLExpr())
+  
+  def setDebug(f:Boolean) : Unit = signal.setDebugFlag(f)
 
 }
 

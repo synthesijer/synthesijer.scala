@@ -3,7 +3,7 @@ package synthesijer.scala
 import synthesijer.hdl.sequencer.SequencerState
 import synthesijer.hdl.HDLSequencer
 
-class Sequencer(seq: HDLSequencer){
+class Sequencer(val seq: HDLSequencer){
   
   var uid = 0;
   

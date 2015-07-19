@@ -351,7 +351,7 @@ object Utils {
   
   def genVHDL(m:HDLModule) = HDLUtils.generate(m, HDLUtils.VHDL);
   
-  def genVerilog(m:HDLModule) = HDLUtils.generate(m, HDLUtils.VHDL);
+  def genVerilog(m:HDLModule) = HDLUtils.generate(m, HDLUtils.Verilog);
   
   def toHDLValue(num:Int) = new HDLValue(num.toString, HDLPrimitiveType.genIntegerType())
 

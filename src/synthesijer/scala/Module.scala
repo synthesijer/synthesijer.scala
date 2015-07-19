@@ -101,10 +101,17 @@ trait ModuleFunc extends HDLModule{
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
-	  def this(name:String) = this(name, "clk", "reset")
-	  
-	  val sysClk = new Signal(this, getSysClk().getSignal())
-	  val sysReset = new Signal(this, getSysReset().getSignal())
+    def this(name:String) = this(name, "clk", "reset")
+    
+    val sysClk = new Signal(this, getSysClk().getSignal())
+    val sysReset = new Signal(this, getSysReset().getSignal())
+    
+}
+
+class CombinationLogic(name:String) extends HDLModule(name) with ModuleFunc{
+    
+    val sysClk = new Signal(this, getSysClk().getSignal())
+    val sysReset = new Signal(this, getSysReset().getSignal())
     
 }
 

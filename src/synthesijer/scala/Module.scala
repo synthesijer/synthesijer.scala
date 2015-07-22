@@ -59,6 +59,13 @@ trait ModuleFunc extends HDLModule{
   
   def instance(target:Module, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
   
+  def instance(target:Module, name:String, clk:Signal, reset:Signal) : Instance = {
+    val instance = new Instance(this, newModuleInstance(target, name))
+    instance.sysClk := clk
+    instance.sysReset := reset
+		return instance 
+  }
+  
   def instance(target:HDLModule, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
   
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
@@ -178,6 +185,9 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
 	
   def signalFor(name:String) = new Signal(module, target.getSignalForPort(name))
   def signalFor(p:Port) = new Signal(module, target.getSignalForPort(p.port.getName()))
+  def parameter(name:String, value:String):Unit = {
+    target.setParameterOverwrite(name, value)
+  }
   
 }
 

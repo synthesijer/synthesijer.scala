@@ -35,7 +35,7 @@ trait ModuleFunc extends HDLModule{
 
   def signal(name:String, width:Integer) : Signal = new Signal(this, newSignal(name, HDLPrimitiveType.genSignedType(width)))
   def signal(width:Integer) : Signal = {
-	  val sig = new Signal(this, newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
+	  val sig = new Signal(this, newSignal("synthesijer_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
 	  id = id + 1
 	  return sig
   }
@@ -43,7 +43,7 @@ trait ModuleFunc extends HDLModule{
 	def signal(name:String) : BitSignal = new BitSignal(this, newSignal(name, HDLPrimitiveType.genBitType()))
 	
 	def signal() : BitSignal = {
-	  val sig = new BitSignal(this, newSignal("synthesier_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
+	  val sig = new BitSignal(this, newSignal("synthesijer_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
 	  id = id + 1
 	  return sig
 	}

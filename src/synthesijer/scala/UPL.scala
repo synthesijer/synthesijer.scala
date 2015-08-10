@@ -8,6 +8,13 @@ class UPLIn(val m:Module, prefix:String, val width:Int){
   
   ack.default(m.LOW)
   
+  def := (u:UPLIn) : Unit = {
+    u.req := req
+    u.en := en
+    ack := u.ack
+    u.data := data
+  }
+  
   // !!! not yet completed
   def templateRecv(seq:Sequencer, t:Array[ExprDestination]):(State,State) = {
 	  val entry = seq.add()
@@ -40,6 +47,14 @@ class UPLOut(m:Module, prefix:String, width:Int){
   val en = m.outP(prefix + "En")
   val ack = m.inP(prefix  + "Ack")
   val data = m.outP(prefix + "Data", width)
+  
+  def := (u:UPLOut) : Unit = {
+    req := u.req
+    en := u.en
+    u.ack := ack 
+    data := u.data 
+  }
+
 }
 
 

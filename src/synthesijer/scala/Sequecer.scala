@@ -18,7 +18,11 @@ class Sequencer(val seq: HDLSequencer){
     uid = uid + 1
     return s
 	}
-	  	
+	 
+	def * (e:ExprItem) : SeqExpr = {
+    return new SeqExpr(this, e)
+  }
+
 }
 
 class State(val state: SequencerState){
@@ -53,4 +57,8 @@ class StateExpr(val state:State, val expr:ExprItem){
     state.state.addStateTransit(expr.toHDLExpr, s.state)
     return s
   }
+}
+
+class SeqExpr(val seq:Sequencer, val expr:ExprItem){
+
 }

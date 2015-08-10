@@ -80,6 +80,8 @@ trait ModuleFunc extends HDLModule{
   
   def value(n:Long, width:Int):ExprItem = new Value(this, n, width);
   
+  def integer(n:Long, width:Int):ExprItem = new IntegerValue(this, n, width);
+  
   def ?(c:ExprItem, e0:ExprItem, e1:ExprItem):ExprItem = expr(Op.IF, c, e0, e1)
   
   def padding0(e:ExprItem, v:Int) = expr(Op.padding0, e, v)
@@ -351,11 +353,14 @@ class Expr(module:ModuleFunc, val expr:HDLExpr) extends ExprItem(module){
 }
 
 class Value(module:ModuleFunc, n:Long, width:Int) extends ExprItem(module){
-	val value = new HDLValue(n.toString(), HDLPrimitiveType.genVectorType(width))
-	
-	def toHDLExpr() = value
+  val value = new HDLValue(n.toString(), HDLPrimitiveType.genVectorType(width))
+  def toHDLExpr() = value
 }
 
+class IntegerValue(module:ModuleFunc, n:Long, width:Int) extends ExprItem(module){
+  val value = new HDLValue(n.toString(), HDLPrimitiveType.genSignedType(width))
+  def toHDLExpr() = value
+}
 
 object Utils {
   

@@ -72,13 +72,17 @@ trait ModuleFunc extends HDLModule{
 
   def visualize_resource() : Unit = HDLUtils.genResourceUsageTable(this)
   
-  def parameter(name:String, value:Int) = newParameter(name, HDLPrimitiveType.genIntegerType(), value.toString())
+  def parameter(name:String, value:Int) = newParameter(name, HDLPrimitiveType.genIntegerType(), new HDLValue(value))
 
+  def parameter(name:String, value:String) = newParameter(name, HDLPrimitiveType.genStringType(), new HDLValue(value))
+
+  def parameter(name:String, value:Value) = newParameter(name, value.toHDLExpr().getType(), value.toHDLExpr())
+  
   def range(exp:ExprItem, b:Int, e:Int):ExprItem = expr(Op.take, expr(Op.>>>, exp, e), b - e + 1)
   
   def ref(exp:ExprItem, i:Int):ExprItem = expr(Op.REF, exp, i)
   
-  def value(n:Long, width:Int):ExprItem = new Value(this, n, width);
+  def value(n:Long, width:Int):Value = new Value(this, n, width);
   
   def integer(n:Long, width:Int):ExprItem = new IntegerValue(this, n, width);
   
@@ -101,7 +105,7 @@ trait ModuleFunc extends HDLModule{
   val HIGH = new Constant(this, HDLPreDefinedConstant.HIGH)
   
   def decoder(sel:ExprItem, lst:List[(Int, Int)], w:Int) = 
-    lst.foldRight(value(0,w)){
+    lst.foldRight[ExprItem](value(0,w)){
 	  (a,z) => ?(sel == a._1, value(a._2, w), z)
   }
   
@@ -187,8 +191,17 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
 	
   def signalFor(name:String) = new Signal(module, target.getSignalForPort(name))
   def signalFor(p:Port) = new Signal(module, target.getSignalForPort(p.port.getName()))
+  
+  def parameter(name:String, value:Int):Unit = {
+    target.setParameterOverwrite(name, new HDLValue(value))
+  }
+  
   def parameter(name:String, value:String):Unit = {
-    target.setParameterOverwrite(name, value)
+    target.setParameterOverwrite(name, new HDLValue(value))
+  }
+  
+  def parameter(name:String, value:Value):Unit = {
+    target.setParameterOverwrite(name, value.toHDLExpr())
   }
   
 }

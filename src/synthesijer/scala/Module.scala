@@ -57,7 +57,13 @@ trait ModuleFunc extends HDLModule{
 
   def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
   
-  def instance(target:Module, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
+  def instance(target:ModuleFunc, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
+  
+  def instance(target:ModuleFunc) : Instance = {
+    val u = instance(target, "synthesijer_scala_inst_" + id)
+    id = id + 1 
+    return u
+  }
   
   def instance(target:Module, name:String, clk:Signal, reset:Signal) : Instance = {
     val instance = new Instance(this, newModuleInstance(target, name))
@@ -65,8 +71,15 @@ trait ModuleFunc extends HDLModule{
     instance.sysReset := reset
 		return instance 
   }
-  
+    
   def instance(target:HDLModule, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
+  
+	def instance(target:HDLModule) : Instance = {
+    val u = instance(target, "synthesijer_scala_inst_" + id)
+    id = id + 1 
+    return u
+  }
+
   
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
 
@@ -111,10 +124,16 @@ trait ModuleFunc extends HDLModule{
   
   def genSimModule():SimpleSimModule = new SimpleSimModule(getName() + "_sim", this)
   
+  def add_library(k:String, v:String) = addLibraryUse(k, v)
+  
+  def component_required(f:Boolean) = setComponentDeclRequired(f) 
+  
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
     def this(name:String) = this(name, "clk", "reset")
+    
+    def this(name:String, clk:Signal, reset:Signal) = this(name, clk.signal.getName, reset.signal.getName)
     
     val sysClk = new Signal(this, getSysClk().getSignal())
     val sysReset = new Signal(this, getSysReset().getSignal())
@@ -182,6 +201,8 @@ class SimpleSimModule(name:String, target:ModuleFunc) extends SimModule(name){
   
   def signalFor(p:Port):Option[Signal] = pairs.get(p.port)
   
+  def ::(p:Port):Option[Signal] = signalFor(p)
+  
 }
 
 class Instance(module:ModuleFunc, target:HDLInstance) {
@@ -190,8 +211,13 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
   val sysReset = new Signal(module, target.getSignalForPort(target.getSubModule().getSysResetName()))
 	
   def signalFor(name:String) = new Signal(module, target.getSignalForPort(name))
+  
+  def ::(name:String) = signalFor(name)
+  
   def signalFor(p:Port) = new Signal(module, target.getSignalForPort(p.port.getName()))
   
+  def ::(p:Port) = signalFor(p)
+
   def parameter(name:String, value:Int):Unit = {
     target.setParameterOverwrite(name, new HDLValue(value))
   }

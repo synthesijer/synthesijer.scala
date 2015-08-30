@@ -6,6 +6,8 @@ package synthesijer.scala.xilinx.series7
 
 import synthesijer.scala._
 
+import synthesijer.hdl.HDLSignal
+
 class CARRY4 extends CombinationLogic("CARRY4") {
   
   val O = outP("O", 4)
@@ -42,6 +44,24 @@ class CARRY4_test() extends Module("CARRY4_test", "clk", "reset") {
   
 }
 
+class CARRY4_test2() extends Module("CARRY4_test2", "clk", "reset") {
+  
+  val x0 = inP("x0")
+  val y0 = inP("y0")
+  val z0 = outP("z0")
+  val z1 = outP("z1")
+  val z2 = outP("z2")
+  
+  z0 := x0 and y0
+
+  val x1c = new CARRY4Sig(x0)
+  val y1c = new CARRY4Sig(y0)
+  
+  z1 := x1c and y1c
+  
+  z2 := z0 or z1
+}
+
 class CARRY4_sim(t:CARRY4_test) extends SimModule("CARRY4_sim"){
   
   val (clk, reset, counter) = system(10)
@@ -54,6 +74,12 @@ class CARRY4_sim(t:CARRY4_test) extends SimModule("CARRY4_sim"){
   }
   
 }
+
+class CARRY4Sig(s:Signal) extends Signal(s.module, s.signal){
+  def this(p:Port) = this(p.signal)
+	def and (e:CARRY4Sig):ExprItem = CARRY4.and(s.module, this, e)
+}
+
 
 object CARRY4 {
 
@@ -117,6 +143,8 @@ object CARRY4 {
     val sim = new CARRY4_sim(t)
     sim.genVHDL()
     sim.genVerilog()
+    val t2 = new CARRY4_test2()
+    t2.genVHDL()
   }
   
 }

@@ -263,6 +263,8 @@ class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with Ex
   def $(e:ExprDestination) = new EventAssignPair(this, e)
   
   def getHDLSignal : HDLSignal = port.getSignal()
+  
+  def signal:Signal = new Signal(module, port.getSignal())
 
 }
 

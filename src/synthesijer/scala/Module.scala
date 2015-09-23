@@ -109,6 +109,14 @@ trait ModuleFunc extends HDLModule{
   
   def str2ary(s:String) = s.map(x => value(x, 8)).reduce((a:ExprItem, b:ExprItem) => (a & b))
   
+  def bitarray2vector(s:Seq[BitSignal]):ExprItem = {
+    var a:ExprItem = s(0)
+    for(i <- 1 until s.length){
+      a = s(i) & a
+    }
+    return a
+  }
+  
   val VECTOR_ZERO = new Constant(this, HDLPreDefinedConstant.VECTOR_ZERO)
   val ZERO = new Constant(this, HDLPreDefinedConstant.INTEGER_ZERO)
   val ONE = new Constant(this, HDLPreDefinedConstant.INTEGER_ONE)
@@ -234,6 +242,8 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
 
 class BitPort(module:ModuleFunc, port:HDLPort) extends Port(module, port){
   
+	override def signal:BitSignal = new BitSignal(module, port.getSignal())
+
 }
 
 class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with ExprDestination{

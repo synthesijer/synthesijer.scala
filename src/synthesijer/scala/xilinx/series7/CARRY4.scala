@@ -60,6 +60,19 @@ class CARRY4_test2() extends Module("CARRY4_test2", "clk", "reset") {
   z1 := x1c and y1c
   
   z2 := z0 or z1
+  
+  val a = inP("a", 32)
+  val b = inP("b", 32)
+  val c0 = outP("c0", 32)
+  val c1 = outP("c1", 32)
+  
+  val a0 = new CARRY4Sig(a) 
+  val b0 = new CARRY4Sig(b) 
+  
+  println("+")
+  c0 := a0 + b0
+  c1 := a + b
+  
 }
 
 class CARRY4_sim(t:CARRY4_test) extends SimModule("CARRY4_sim"){
@@ -77,7 +90,9 @@ class CARRY4_sim(t:CARRY4_test) extends SimModule("CARRY4_sim"){
 
 class CARRY4Sig(s:Signal) extends Signal(s.module, s.signal){
   def this(p:Port) = this(p.signal)
-	def and (e:CARRY4Sig):ExprItem = CARRY4.and(s.module, this, e)
+  def and (e:CARRY4Sig):ExprItem = CARRY4.and(s.module, this, e)
+  def or (e:CARRY4Sig):ExprItem = CARRY4.or(s.module, this, e)
+  def + (e:CARRY4Sig):ExprItem = CARRY4.add32(s.module, this, e)
 }
 
 
@@ -134,6 +149,32 @@ object CARRY4 {
     s := u.signalFor(tmpl.O).ref(0)
     c := u.signalFor(tmpl.O).ref(1)
     return (s, c)
+  }
+
+  def full_addr(m:ModuleFunc, a:ExprItem, b:ExprItem, c_in:ExprItem) : (ExprItem, ExprItem) = {
+    init(m)
+    val (s0, c0) = half_addr(m, a, b)
+    val (s, c1) = half_addr(m, s0, c_in)
+    val c = and(m, c0, c1)
+    return (s, c)
+  }
+
+	def add32(m:ModuleFunc, a:ExprItem, b:ExprItem) : ExprItem = {
+    init(m)
+    val s = for(i <- 0 until 32) yield m.signal()
+    val c = for(i <- 0 until 32) yield m.signal()
+    for(i <- 0 until 32){
+      if(i == 0){
+    	  val x = full_addr(m, a.ref(i), b.ref(i), m.LOW)
+        s(i) := x._1 
+        c(i) := x._2 
+      }else{
+    	  val x = full_addr(m, a.ref(i), b.ref(i), c(i-1))
+        s(i) := x._1 
+        c(i) := x._2 
+      }
+    }
+    return m.bitarray2vector(s)
   }
 
   def main(args:Array[String]) = {

@@ -16,37 +16,84 @@ import synthesijer.tools.xilinx.HDLModuleToComponentXML
 trait ModuleFunc extends HDLModule{
   
   var id = 0
-  	
+  var all_ports = Seq.empty[Port]
+  var all_signals = Seq.empty[Signal]
+  var all_instances = Seq.empty[Instance]
+  var all_sequencers = Seq.empty[Sequencer]
+  
   def genVHDL() = Utils.genVHDL(this)
   def genVerilog() = Utils.genVerilog(this)
   def genVHDLTmpl() = Utils.genVHDLTmpl(this)
   def genComponentXML() = HDLModuleToComponentXML.conv(this, null, "vendor", "user");
-    
-  def outP(name:String) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
-  def outP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
-  def outSignedP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genSignedType(width)))
-	
-  def inP(name:String) : BitPort = new BitPort(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
-  def inP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
-  def inSignedP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genSignedType(width)))
   
-  def ioP(name:String) : BitPort = new BitPort(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
-  def ioP(name:String, width:Int) : Port = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))
-
-  def signal(name:String, width:Integer) : Signal = new Signal(this, newSignal(name, HDLPrimitiveType.genSignedType(width)))
-  def signal(width:Integer) : Signal = {
-	  val sig = new Signal(this, newSignal("synthesijer_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
-	  id = id + 1
-	  return sig
+  def outP(name:String) : Port = {
+    val p = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
+    all_ports = all_ports :+ p
+    return p
   }
-	
-	def signal(name:String) : BitSignal = new BitSignal(this, newSignal(name, HDLPrimitiveType.genBitType()))
-	
-	def signal() : BitSignal = {
-	  val sig = new BitSignal(this, newSignal("synthesijer_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
-	  id = id + 1
-	  return sig
-	}
+  def outP(name:String, width:Int) : Port = {
+    val p = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genVectorType(width)))
+    all_ports = all_ports :+ p
+    return p
+  }
+  def outSignedP(name:String, width:Int) : Port = {
+    val p = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genSignedType(width)))
+    all_ports = all_ports :+ p
+    return p
+  }
+  
+  def inP(name:String) : BitPort = {
+    val p = new BitPort(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genBitType()))
+    all_ports = all_ports :+ p
+    return p
+  }
+  def inP(name:String, width:Int) : Port = {
+    val p = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width)))
+    all_ports = all_ports :+ p
+    return p
+  }
+
+  def inSignedP(name:String, width:Int) : Port = {
+    val p = new Port(this, newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genSignedType(width)))
+    all_ports = all_ports :+ p
+    return p
+  }
+  
+  def ioP(name:String) : BitPort = {
+    val p = new BitPort(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genBitType()))
+    all_ports = all_ports :+ p
+    return p
+  }
+  def ioP(name:String, width:Int) : Port = {
+    val p = new Port(this, newPort(name, HDLPort.DIR.INOUT, HDLPrimitiveType.genVectorType(width)))
+    all_ports = all_ports :+ p
+    return p
+  }
+
+  def signal(name:String, width:Integer) : Signal = {
+    val s = new Signal(this, newSignal(name, HDLPrimitiveType.genSignedType(width)))
+    all_signals = all_signals :+ s
+    return s
+  }
+  def signal(width:Integer) : Signal = {
+    val s = new Signal(this, newSignal("synthesijer_scala_tmp_" + id, HDLPrimitiveType.genSignedType(width)))
+    id = id + 1
+    all_signals = all_signals :+ s
+    return s
+  }
+  
+  def signal(name:String) : BitSignal = {
+    val s = new BitSignal(this, newSignal(name, HDLPrimitiveType.genBitType()))
+    all_signals = all_signals :+ s
+    return s
+  }
+  
+  def signal() : BitSignal = {
+    val s = new BitSignal(this, newSignal("synthesijer_scala_tmp_" + id, HDLPrimitiveType.genBitType()))
+    id = id + 1
+    all_signals = all_signals :+ s
+    return s
+  }
   
   private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), e2.toHDLExpr()))
   private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr()))
@@ -55,31 +102,45 @@ trait ModuleFunc extends HDLModule{
   private[scala] def expr(op:HDLOp, e0:ExprItem, e1:ExprItem, e2:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), e1.toHDLExpr(), Utils.toHDLValue(e2)));
   private[scala] def expr(op:HDLOp, e0:ExprItem, e1:Int) : Expr = new Expr(this, newExpr(op, e0.toHDLExpr(), Utils.toHDLValue(e1)));
 
-  def sequencer(name:String) : Sequencer = new Sequencer(newSequencer(name))
+  def sequencer(name:String) : Sequencer = {
+    val s = new Sequencer(newSequencer(name))
+    all_sequencers = all_sequencers :+ s
+    return s
+  }
   
-  def instance(target:ModuleFunc, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
+  def instance(target:ModuleFunc, name:String) : Instance = {
+    val i = new Instance(this, newModuleInstance(target, name))
+    all_instances = all_instances :+ i
+    return i
+  }
   
   def instance(target:ModuleFunc) : Instance = {
-    val u = instance(target, "synthesijer_scala_inst_" + id)
-    id = id + 1 
-    return u
+    val i = instance(target, "synthesijer_scala_inst_" + id)
+    id = id + 1
+    all_instances = all_instances :+ i
+    return i
   }
   
   def instance(target:Module, name:String, clk:Signal, reset:Signal) : Instance = {
-    val instance = new Instance(this, newModuleInstance(target, name))
-    instance.sysClk := clk
-    instance.sysReset := reset
-		return instance 
+    val i = new Instance(this, newModuleInstance(target, name))
+    i.sysClk := clk
+    i.sysReset := reset
+    all_instances = all_instances :+ i
+    return i
   }
-    
-  def instance(target:HDLModule, name:String) : Instance = new Instance(this, newModuleInstance(target, name))
   
-	def instance(target:HDLModule) : Instance = {
-    val u = instance(target, "synthesijer_scala_inst_" + id)
-    id = id + 1 
-    return u
+  def instance(target:HDLModule, name:String) : Instance = {
+    val i = new Instance(this, newModuleInstance(target, name))
+    all_instances = all_instances :+ i
+    return i
   }
-
+  
+  def instance(target:HDLModule) : Instance = {
+    val i = instance(target, "synthesijer_scala_inst_" + id)
+    id = id + 1
+    all_instances = all_instances :+ i
+    return i
+  }
   
   def visualize_statemachine() : Unit =  HDLUtils.genHDLSequencerDump(this)
 
@@ -125,27 +186,27 @@ trait ModuleFunc extends HDLModule{
   val LOW = new Constant(this, HDLPreDefinedConstant.LOW)
   val HIGH = new Constant(this, HDLPreDefinedConstant.HIGH)
   
-  def decoder(sel:ExprItem, lst:List[(Int, Int)], w:Int) = 
+  def decoder(sel:ExprItem, lst:List[(Int, Int)], w:Int) =
     lst.foldRight[ExprItem](value(0,w)){
-	  (a,z) => ?(sel == a._1, value(a._2, w), z)
-  }
+      (a,z) => ?(sel == a._1, value(a._2, w), z)
+    }
   
   def genSimModule():SimpleSimModule = new SimpleSimModule(getName() + "_sim", this)
   
   def add_library(k:String, v:String) = addLibraryUse(k, v)
   
-  def component_required(f:Boolean) = setComponentDeclRequired(f) 
+  def component_required(f:Boolean) = setComponentDeclRequired(f)
   
 }
 
 class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
-    def this(name:String) = this(name, "clk", "reset")
-    
-    def this(name:String, clk:Signal, reset:Signal) = this(name, clk.signal.getName, reset.signal.getName)
-    
-    val sysClk = new Signal(this, getSysClk().getSignal())
-    val sysReset = new Signal(this, getSysReset().getSignal())
-    
+  def this(name:String) = this(name, "clk", "reset")
+  
+  def this(name:String, clk:Signal, reset:Signal) = this(name, clk.signal.getName, reset.signal.getName)
+  
+  val sysClk = new Port(this, getSysClk())
+  val sysReset = new Port(this, getSysReset())
+  
 }
 
 class CombinationLogic(name:String) extends HDLModule(name) with ModuleFunc{
@@ -154,31 +215,31 @@ class CombinationLogic(name:String) extends HDLModule(name) with ModuleFunc{
 
 class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
 
-	def system(tick:Int):(Signal,Signal,Signal) = {  
-	  val clk = signal("clk")
-	  val reset = signal("reset")
-	  val counter = signal("counter", 32)
-	  
-	  val seq = sequencer("system")
-	  seq.tick(tick)
-	  
-	  val ss = seq.idle
-	  val s0 = seq.add("S0")
-	  ss -> s0 -> ss
+  def system(tick:Int):(Signal,Signal,Signal) = {
+    val clk = signal("clk")
+    val reset = signal("reset")
+    val counter = signal("counter", 32)
+    
+    val seq = sequencer("system")
+    seq.tick(tick)
+    
+    val ss = seq.idle
+    val s0 = seq.add("S0")
+    ss -> s0 -> ss
 
-	  clk <= (ss, LOW)
-	  clk <= (s0, HIGH)
+    clk <= (ss, LOW)
+    clk <= (s0, HIGH)
 
-	  val countup = expr(Op.+, counter, 1)
-	  counter <= (s0, countup)
+    val countup = expr(Op.+, counter, 1)
+    counter <= (s0, countup)
 
-	  reset.reset(LOW)
-	  reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW))
-	  
-	  return (clk, reset, counter)
-	}
-	
-}  
+    reset.reset(LOW)
+    reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW))
+    
+    return (clk, reset, counter)
+  }
+  
+}
 
 class SimpleSimModule(name:String, target:ModuleFunc) extends SimModule(name){
   
@@ -189,16 +250,16 @@ class SimpleSimModule(name:String, target:ModuleFunc) extends SimModule(name){
 
   val ports = for(p <- target.getPorts if (p.getName() != "clk" && p.getName() != "reset")) yield(p)
   val pairs =
-  (for(p <- ports;
-   val s = if(p.getSignal().getWidth() > 1){
-	           signal(p.getName(), p.getSignal().getWidth())
-           }else{
-             signal(p.getName())
-           }
-   ) yield(p,s)).foldRight(Map.empty[HDLPort, Signal]){
-    (t,z) => z + (t._1 -> t._2) 
-  }
-    
+    (for(p <- ports;
+      val s = if(p.getSignal().getWidth() > 1){
+	signal(p.getName(), p.getSignal().getWidth())
+      }else{
+        signal(p.getName())
+      }
+    ) yield(p,s)).foldRight(Map.empty[HDLPort, Signal]){
+      (t,z) => z + (t._1 -> t._2)
+    }
+  
   for((p, s) <- pairs){
     if(p.isOutput()){
       s := inst.signalFor(p.getName())
@@ -215,9 +276,9 @@ class SimpleSimModule(name:String, target:ModuleFunc) extends SimModule(name){
 
 class Instance(module:ModuleFunc, target:HDLInstance) {
   
-	val sysClk = new Signal(module, target.getSignalForPort(target.getSubModule().getSysClkName()))
+  val sysClk = new Signal(module, target.getSignalForPort(target.getSubModule().getSysClkName()))
   val sysReset = new Signal(module, target.getSignalForPort(target.getSubModule().getSysResetName()))
-	
+  
   def signalFor(name:String) = new Signal(module, target.getSignalForPort(name))
   
   def ::(name:String) = signalFor(name)
@@ -242,18 +303,18 @@ class Instance(module:ModuleFunc, target:HDLInstance) {
 
 class BitPort(module:ModuleFunc, port:HDLPort) extends Port(module, port){
   
-	override def signal:BitSignal = new BitSignal(module, port.getSignal())
+  override def signal:BitSignal = new BitSignal(module, port.getSignal())
 
 }
 
 class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with ExprDestination{
   
-	def := (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
-	
+  def := (e:ExprItem):Unit = port.getSignal().setAssign(null, e.toHDLExpr)
+  
   def <= (t:(State, ExprItem)) : Unit = port.getSignal().setAssign(t._1.state, t._2.toHDLExpr)
   
   def <= (t:(State, Int, ExprItem)) : Unit = port.getSignal().setAssign(t._1.state, t._2, t._3.toHDLExpr)
-	
+  
   def <= (e:StateExpr) : Unit = this <= (e.state, e.expr)
   
   def is (e:StateExpr) : Unit = this <= (e.state, e.expr)
@@ -263,14 +324,16 @@ class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with Ex
   def #= (e:SeqExpr) : Unit = this #= (e.seq, e.expr)
 
   def reset(e:ExprItem): Unit = port.getSignal().setResetValue(e.toHDLExpr)
-	
+  
   def toHDLExpr() = port.getSignal()
   
   def default(e:ExprItem):Unit = port.getSignal().setDefaultValue(e.toHDLExpr())
   
   def width() : Int = port.getSignal().getWidth()
   
-  def $(e:ExprDestination) = new EventAssignPair(this, e)
+  def $(e:Port) = new PortEventAssignPair(this, e)
+
+  def $(s:Signal) = new SignalEventAssignPair(this, s)
   
   def getHDLSignal : HDLSignal = port.getSignal()
   
@@ -280,126 +343,133 @@ class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with Ex
 
 abstract class ExprItem(val module:ModuleFunc) {
   
-	def toHDLExpr() : HDLExpr
-	
-	def + (e:ExprItem):ExprItem = module.expr(Op.+, this, e)
-	def + (v:Int) : ExprItem = module.expr(Op.+, this, v)
-	
+  def toHDLExpr() : HDLExpr
+  
+  def + (e:ExprItem):ExprItem = module.expr(Op.+, this, e)
+  def + (v:Int) : ExprItem = module.expr(Op.+, this, v)
+  
   def - (e:ExprItem):ExprItem = module.expr(Op.-, this, e)
   def - (v:Int) : ExprItem = module.expr(Op.-, this, v)
 
   def * (e:ExprItem):ExprItem = module.expr(Op.*, this, e)
   def * (v:Int) : ExprItem = module.expr(Op.*, this, v)
 
-	def and (e:ExprItem):ExprItem = module.expr(Op.and, this, e)
-	def or (e:ExprItem):ExprItem = module.expr(Op.or, this, e)
-	def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
-	def ! : ExprItem = module.expr(Op.not, this)
-	
-	def == (e:ExprItem):ExprItem = module.expr(Op.eq, this, e)
-	def == (v:Int) : ExprItem = module.expr(Op.eq, this, v)
-	
-	def != (e:ExprItem) : ExprItem = module.expr(Op.neq, this, e)
-	def != (v:Int) : ExprItem = module.expr(Op.neq, this, v)
-	
-	def /= (v:Int) : ExprItem = module.expr(Op.==, this, v)
-	
-	def < (e:ExprItem):ExprItem = module.expr(Op.<, this, e)
-	def < (v:Int) : ExprItem = module.expr(Op.<, this, v)
-	
-	def > (e:ExprItem):ExprItem = module.expr(Op.>, this, e)
-	def > (v:Int) : ExprItem = module.expr(Op.>, this, v)
-	
-	def leq (e:ExprItem):ExprItem = module.expr(Op.<=, this, e)
-	def leq (v:Int):ExprItem = module.expr(Op.<=, this, v)
-	
-	def geq (e:ExprItem):ExprItem = module.expr(Op.>=, this, e)
-	def geq (v:Int):ExprItem = module.expr(Op.>=, this, v)
-	
-	def /= (e:ExprItem):ExprItem = module.expr(Op./=, this, e)
-	
-	def & (e:ExprItem):ExprItem = module.expr(Op.concat, this, e)
-	def concat (e:ExprItem):ExprItem = module.expr(Op.&, this, e)
-	
-	def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
-	def >>> (v:Int):ExprItem = module.expr(Op.>>>, this, v)
-	def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
+  def and (e:ExprItem):ExprItem = module.expr(Op.and, this, e)
+  def or (e:ExprItem):ExprItem = module.expr(Op.or, this, e)
+  def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
+  def ! : ExprItem = module.expr(Op.not, this)
+  
+  def == (e:ExprItem):ExprItem = module.expr(Op.eq, this, e)
+  def == (v:Int) : ExprItem = module.expr(Op.eq, this, v)
+  
+  def != (e:ExprItem) : ExprItem = module.expr(Op.neq, this, e)
+  def != (v:Int) : ExprItem = module.expr(Op.neq, this, v)
+  
+  def /= (v:Int) : ExprItem = module.expr(Op.==, this, v)
+  
+  def < (e:ExprItem):ExprItem = module.expr(Op.<, this, e)
+  def < (v:Int) : ExprItem = module.expr(Op.<, this, v)
+  
+  def > (e:ExprItem):ExprItem = module.expr(Op.>, this, e)
+  def > (v:Int) : ExprItem = module.expr(Op.>, this, v)
+  
+  def leq (e:ExprItem):ExprItem = module.expr(Op.<=, this, e)
+  def leq (v:Int):ExprItem = module.expr(Op.<=, this, v)
+  
+  def geq (e:ExprItem):ExprItem = module.expr(Op.>=, this, e)
+  def geq (v:Int):ExprItem = module.expr(Op.>=, this, v)
+  
+  def /= (e:ExprItem):ExprItem = module.expr(Op./=, this, e)
+  
+  def & (e:ExprItem):ExprItem = module.expr(Op.concat, this, e)
+  def concat (e:ExprItem):ExprItem = module.expr(Op.&, this, e)
+  
+  def >> (v:Int):ExprItem = module.expr(Op.>>, this, v)
+  def >>> (v:Int):ExprItem = module.expr(Op.>>>, this, v)
+  def << (v:Int):ExprItem = module.expr(Op.<<, this, v)
 
   def * (s:State):StateExpr = new StateExpr(s, this)
 
   def in (s:State):StateExpr = new StateExpr(s, this)
-    
+  
   def _in (s:State):StateExpr = new StateExpr(s, this)
 
-	def -> (s:State):StateExpr = new StateExpr(s, this)
-	
-	def ref(i:Int):ExprItem = module.ref(this, i)
+  def -> (s:State):StateExpr = new StateExpr(s, this)
+  
+  def ref(i:Int):ExprItem = module.ref(this, i)
 
-	def range(b:Int, e:Int):ExprItem = module.range(this, b, e)
+  def range(b:Int, e:Int):ExprItem = module.range(this, b, e)
   
   def ?(a:ExprItem, b:ExprItem) = module.?(this, a, b)
 
 }
 
-class EventAssignPair(d:ExprDestination, e:ExprDestination){
-  def := (expr:ExprItem) = d.getHDLSignal().setAssignForSignalEvent(e.getHDLSignal(), expr.toHDLExpr())
+class PortEventAssignPair(d:ExprDestination, e:Port){
+  def := (expr:ExprItem) = d.getHDLSignal().setAssignForPortEvent(e.port, expr.toHDLExpr())
+}
+
+class SignalEventAssignPair(d:ExprDestination, s:Signal){
+  def := (expr:ExprItem) = d.getHDLSignal().setAssignForSignalEvent(s.signal, expr.toHDLExpr())
 }
 
 trait ExprDestination {
-  	def := (e:ExprItem);
-    def <= (t:(State, ExprItem));
-    def <= (t:(State, Int, ExprItem));
-    def #= (t:(Sequencer, ExprItem));
-  	def width():Int;
-    def <= (e:StateExpr);
-    def is (e:StateExpr);
-    def #= (e:SeqExpr);
-    def $ (s:ExprDestination) : EventAssignPair;
-    
-    def getHDLSignal() : HDLSignal;
-    
+  def := (e:ExprItem);
+  def <= (t:(State, ExprItem));
+  def <= (t:(State, Int, ExprItem));
+  def #= (t:(Sequencer, ExprItem));
+  def width():Int;
+  def <= (e:StateExpr);
+  def is (e:StateExpr);
+  def #= (e:SeqExpr);
+  def $ (e:Port) : PortEventAssignPair;
+  def $ (s:Signal) : SignalEventAssignPair;
+  
+  def getHDLSignal() : HDLSignal;
+  
 }
 
 class BitSignal(module:ModuleFunc, signal:HDLSignal) extends Signal(module, signal){ }
 
 
 class Signal(module:ModuleFunc, val signal:HDLSignal) extends ExprItem(module) with ExprDestination{
-	
-	def := (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
-	
+  
+  def := (e:ExprItem) : Unit = signal.setAssign(null, e.toHDLExpr)
+  
   def <= (t:(State, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2.toHDLExpr)
   
   def <= (e:StateExpr) : Unit = this <= (e.state, e.expr)
   
   def is (e:StateExpr) : Unit = this <= (e.state, e.expr)
 
-	def <= (t:(State, Int, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2, t._3.toHDLExpr)
+  def <= (t:(State, Int, ExprItem)) : Unit = signal.setAssign(t._1.state, t._2, t._3.toHDLExpr)
   
-  def := (t:(Sequencer, ExprItem)) : Unit = signal.setAssignForSequencer(t._1.seq, t._2.toHDLExpr) 
-	
+  def := (t:(Sequencer, ExprItem)) : Unit = signal.setAssignForSequencer(t._1.seq, t._2.toHDLExpr)
+  
   def #= (t:(Sequencer, ExprItem)) : Unit = signal.setAssignForSequencer(t._1.seq, t._2.toHDLExpr)
 
   def #= (e:SeqExpr) : Unit = this #= (e.seq, e.expr)
 
   def width() : Int = signal.getWidth()
 
-	def reset(e:ExprItem): Unit = signal.setResetValue(e.toHDLExpr)
-	
-	def toHDLExpr() = signal
-	
-	def default(e:ExprItem):Unit = signal.setDefaultValue(e.toHDLExpr())
+  def reset(e:ExprItem): Unit = signal.setResetValue(e.toHDLExpr)
+  
+  def toHDLExpr() = signal
+  
+  def default(e:ExprItem):Unit = signal.setDefaultValue(e.toHDLExpr())
   
   def setDebug(f:Boolean) : Unit = signal.setDebugFlag(f)
   
-  def $(e:ExprDestination) = new EventAssignPair(this, e)
- 
+  def $(e:Port) = new PortEventAssignPair(this, e)
+
+  def $(s:Signal) = new SignalEventAssignPair(this, s)
+  
   def getHDLSignal = signal
   
 }
 
 class Expr(module:ModuleFunc, val expr:HDLExpr) extends ExprItem(module){
   
-	def toHDLExpr() = expr
+  def toHDLExpr() = expr
 
 }
 
@@ -430,8 +500,8 @@ object Utils {
     }
     println("port (")
     println((for(p <- m.getPorts) yield {
-              "%s : %s %s".format(p.getName(), p.getDir().getVHDL(), p.getType().asInstanceOf[HDLPrimitiveType].getVHDL(false))
-            }).mkString("  ", ";\n  ", ""))
+      "%s : %s %s".format(p.getName(), p.getDir().getVHDL(), p.getType().asInstanceOf[HDLPrimitiveType].getVHDL(false))
+    }).mkString("  ", ";\n  ", ""))
     println(");")
     println("end component " + m.getName() + ";")
   }
@@ -439,44 +509,44 @@ object Utils {
 }
 
 class Constant(module:ModuleFunc, val v:HDLPreDefinedConstant) extends ExprItem(module){
-    val name = toString
-    def toHDLExpr() = v
+  val name = toString
+  def toHDLExpr() = v
 }
 
 object Op{
-	val + = HDLOp.ADD
-	val add = HDLOp.ADD
+  val + = HDLOp.ADD
+  val add = HDLOp.ADD
   val - = HDLOp.SUB
   val sub = HDLOp.SUB
   val * = HDLOp.HDLMUL
   val mul = HDLOp.HDLMUL
-	val and = HDLOp.AND
-	val or = HDLOp.OR
-	val xor = HDLOp.XOR
-	val not = HDLOp.NOT
-	val == = HDLOp.EQ
-	val eq = HDLOp.EQ
-	val < = HDLOp.LT
-	val lt = HDLOp.LT
-	val > = HDLOp.GT
-	val gt = HDLOp.GT
-	val <= = HDLOp.LEQ
-	val leq = HDLOp.LEQ
-	val >= = HDLOp.GEQ
-	val geq = HDLOp.GEQ
-	val /= = HDLOp.NEQ
-	val neq = HDLOp.NEQ
-	val REF = HDLOp.REF
-	val IF = HDLOp.IF
-	val & = HDLOp.CONCAT
-	val concat = HDLOp.CONCAT
-	val drop = HDLOp.DROPHEAD
-	val take = HDLOp.TAKE
-	val padding = HDLOp.PADDINGHEAD
-	val padding0 = HDLOp.PADDINGHEAD_ZERO
-	val id = HDLOp.ID
-	val >> = HDLOp.ARITH_RSHIFT // TODO check
-	val >>> = HDLOp.LOGIC_RSHIFT
-	val << = HDLOp.LSHIFT
+  val and = HDLOp.AND
+  val or = HDLOp.OR
+  val xor = HDLOp.XOR
+  val not = HDLOp.NOT
+  val == = HDLOp.EQ
+  val eq = HDLOp.EQ
+  val < = HDLOp.LT
+  val lt = HDLOp.LT
+  val > = HDLOp.GT
+  val gt = HDLOp.GT
+  val <= = HDLOp.LEQ
+  val leq = HDLOp.LEQ
+  val >= = HDLOp.GEQ
+  val geq = HDLOp.GEQ
+  val /= = HDLOp.NEQ
+  val neq = HDLOp.NEQ
+  val REF = HDLOp.REF
+  val IF = HDLOp.IF
+    val & = HDLOp.CONCAT
+  val concat = HDLOp.CONCAT
+  val drop = HDLOp.DROPHEAD
+  val take = HDLOp.TAKE
+  val padding = HDLOp.PADDINGHEAD
+  val padding0 = HDLOp.PADDINGHEAD_ZERO
+  val id = HDLOp.ID
+  val >> = HDLOp.ARITH_RSHIFT // TODO check
+  val >>> = HDLOp.LOGIC_RSHIFT
+  val << = HDLOp.LSHIFT
 }
 

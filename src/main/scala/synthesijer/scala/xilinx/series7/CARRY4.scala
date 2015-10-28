@@ -1,8 +1,8 @@
 package synthesijer.scala.xilinx.series7
 
 /**
- * @author miyo
- */
+  * @author miyo
+  */
 
 import synthesijer.scala._
 
@@ -37,7 +37,7 @@ class CARRY4_test() extends Module("CARRY4_test", "clk", "reset") {
   c(5) := (a(5)!)
 
   val x = CARRY4.half_addr(this, a(6), b(6))
-  c(6) := x._1 
+  c(6) := x._1
   
   val y = a(7) + b(7)
   c(7) := y
@@ -66,8 +66,8 @@ class CARRY4_test2() extends Module("CARRY4_test2", "clk", "reset") {
   val c0 = outP("c0", 32)
   val c1 = outP("c1", 32)
   
-  val a0 = new CARRY4Sig(a) 
-  val b0 = new CARRY4Sig(b) 
+  val a0 = new CARRY4Sig(a)
+  val b0 = new CARRY4Sig(b)
   
   println("+")
   c0 := a0 + b0
@@ -79,11 +79,11 @@ class CARRY4_sim(t:CARRY4_test) extends SimModule("CARRY4_sim"){
   
   val (clk, reset, counter) = system(10)
   
-	val u = instance(t, "u", clk, reset)
+  val u = instance(t, "u", clk, reset)
 
   for(i <- 0 until 8){
-	  u.signalFor(t.a(i)) $ clk := ?(counter == 10, HIGH, ?(counter == 11,  LOW, ?(counter == 12, HIGH, LOW)))
-		u.signalFor(t.b(i)) $ clk := ?(counter == 10, HIGH, ?(counter == 11, HIGH, ?(counter == 12,  LOW, LOW)))
+    u.signalFor(t.a(i)) $ clk := ?(counter == 10, HIGH, ?(counter == 11,  LOW, ?(counter == 12, HIGH, LOW)))
+    u.signalFor(t.b(i)) $ clk := ?(counter == 10, HIGH, ?(counter == 11, HIGH, ?(counter == 12,  LOW, LOW)))
   }
   
 }
@@ -98,7 +98,7 @@ class CARRY4Sig(s:Signal) extends Signal(s.module, s.signal){
 
 object CARRY4 {
 
-	private val tmpl = new CARRY4()
+  private val tmpl = new CARRY4()
   
   def init(m:ModuleFunc) = {
     m.add_library("UNISIM", "UNISIM.vcomponents.all")
@@ -144,7 +144,7 @@ object CARRY4 {
     val c = m.signal()
     val u = m.instance(tmpl)
     u.signalFor(tmpl.DI) := m.value(0, 4)
-    u.signalFor(tmpl.S) := m.value(0, 3) & a 
+    u.signalFor(tmpl.S) := m.value(0, 3) & a
     u.signalFor(tmpl.CYINIT) := b
     s := u.signalFor(tmpl.O).ref(0)
     c := u.signalFor(tmpl.O).ref(1)
@@ -159,19 +159,19 @@ object CARRY4 {
     return (s, c)
   }
 
-	def add32(m:ModuleFunc, a:ExprItem, b:ExprItem) : ExprItem = {
+  def add32(m:ModuleFunc, a:ExprItem, b:ExprItem) : ExprItem = {
     init(m)
     val s = for(i <- 0 until 32) yield m.signal()
     val c = for(i <- 0 until 32) yield m.signal()
     for(i <- 0 until 32){
       if(i == 0){
-    	  val x = full_addr(m, a.ref(i), b.ref(i), m.LOW)
-        s(i) := x._1 
-        c(i) := x._2 
+    	val x = full_addr(m, a.ref(i), b.ref(i), m.LOW)
+        s(i) := x._1
+        c(i) := x._2
       }else{
-    	  val x = full_addr(m, a.ref(i), b.ref(i), c(i-1))
-        s(i) := x._1 
-        c(i) := x._2 
+    	val x = full_addr(m, a.ref(i), b.ref(i), c(i-1))
+        s(i) := x._1
+        c(i) := x._2
       }
     }
     return m.bitarray2vector(s)

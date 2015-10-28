@@ -35,6 +35,7 @@ object led {
     val led = generate_led(5)
     val sim = generate_sim(led, "led_sim")
     led.genVHDL()
+    led.genVerilog()
     sim.genVHDL()
   }
 

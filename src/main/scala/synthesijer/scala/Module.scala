@@ -117,15 +117,13 @@ trait ModuleFunc extends HDLModule{
   def instance(target:ModuleFunc) : Instance = {
     val i = instance(target, "synthesijer_scala_inst_" + id)
     id = id + 1
-    all_instances = all_instances :+ i
     return i
   }
   
-  def instance(target:Module, name:String, clk:Signal, reset:Signal) : Instance = {
-    val i = new Instance(this, newModuleInstance(target, name))
+  def instance(target:ModuleFunc, name:String, clk:ExprItem, reset:ExprItem) : Instance = {
+    val i = instance(target, name)
     i.sysClk := clk
     i.sysReset := reset
-    all_instances = all_instances :+ i
     return i
   }
   
@@ -138,7 +136,6 @@ trait ModuleFunc extends HDLModule{
   def instance(target:HDLModule) : Instance = {
     val i = instance(target, "synthesijer_scala_inst_" + id)
     id = id + 1
-    all_instances = all_instances :+ i
     return i
   }
   

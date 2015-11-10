@@ -67,56 +67,38 @@ class Bram2Fifo(n:String, c:String, r:String, words:Int, width:Int) extends Modu
 
 class Bram2FifoSim(name:String, target:Bram2Fifo) extends SimModule(name){
   
-	def this(target:Bram2Fifo) = this("bram2fifo_sim", target)
+  def this(target:Bram2Fifo) = this("bram2fifo_sim", target)
 
-	val inst = instance(target, "U")
-	val clk = signal("clk")
-	val reset = signal("reset")
-	val counter = signal("counter", 32)
-	
-	val ram = instance(new SimpleBlockRAM(32, 5, 32), "MEM")
+  val (clk, reset, counter) = system(10)
 
-	val seq = sequencer("main")
-	seq.tick(10)
+  val inst = instance(target, "U")
+  val ram = instance(new SimpleBlockRAM(32, 5, 32), "MEM")
 
-	val ss = seq.idle
-	val s0 = seq.add("S0")
-	ss -> s0 -> ss
+  inst.signalFor(target.kick) := ?(counter == 200, HIGH, LOW)
+  inst.signalFor(target.init) := ?(counter == 10, HIGH, LOW)
+  inst.signalFor(target.test) := HIGH
+  
+  inst.sysClk := clk
+  inst.sysReset := reset
 
-	clk <= (ss, LOW)
-	clk <= (s0, HIGH)
-
-	val countup = counter + 1
-	counter <= (s0, countup)
-
-	reset.reset(LOW)
-	reset <= (ss, ?((counter > 3) and (counter < 8), HIGH, LOW))
-	
-	inst.signalFor(target.kick) := ?(counter == 200, HIGH, LOW)
-	inst.signalFor(target.init) := ?(counter == 10, HIGH, LOW)
-	inst.signalFor(target.test) := HIGH
-			
-	inst.sysClk := clk
-	inst.sysReset := reset
-
-	inst.signalFor(target.offset) := VECTOR_ZERO
-	ram.signalFor("address_b") := inst.signalFor(target.bram.address)
-	ram.signalFor("we_b") := inst.signalFor(target.bram.we)
-	inst.signalFor(target.bram.din) := ram.signalFor("dout_b") 
-	ram.signalFor("din_b") := inst.signalFor(target.bram.dout)
-	ram.sysClk := clk
+  inst.signalFor(target.offset) := VECTOR_ZERO
+  ram.signalFor("address_b") := inst.signalFor(target.bram.address)
+  ram.signalFor("we_b") := inst.signalFor(target.bram.we)
+  inst.signalFor(target.bram.din) := ram.signalFor("dout_b")
+  ram.signalFor("din_b") := inst.signalFor(target.bram.dout)
+  ram.sysClk := clk
 }
 
 object Bram2Fifo {
 
   def main(args:Array[String]) = {
-	  val m = new Bram2Fifo(1024, 32)
-	  m.visualize_statemachine();
-	  m.genVHDL()
-	  val debug = new Bram2Fifo(32,32)
-	  debug.genVHDL()
-	  val sim = new Bram2FifoSim(debug)
-	  sim.genVHDL()
+    val m = new Bram2Fifo(1024, 32)
+    m.visualize_statemachine();
+    m.genVHDL()
+    val debug = new Bram2Fifo(32,32)
+    debug.genVHDL()
+    val sim = new Bram2FifoSim(debug)
+    sim.genVHDL()
   }
 }
 

@@ -215,7 +215,7 @@ class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
   def system(tick:Int):(Signal,Signal,Signal) = {
     val clk = signal("clk")
     val reset = signal("reset")
-    val counter = signal("counter", 32)
+    val counter = signal("counter", 32); counter.reset(value(0, 32))
     
     val seq = sequencer("system")
     seq.tick(tick)
@@ -227,11 +227,13 @@ class SimModule(name:String) extends HDLSimModule(name) with ModuleFunc{
     clk <= (ss, LOW)
     clk <= (s0, HIGH)
 
-    val countup = expr(Op.+, counter, 1)
-    counter <= (s0, countup)
+    counter $ clk := expr(Op.+, counter, 1)
 
     reset.reset(LOW)
-    reset <= (ss, expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW))
+    reset $ clk := expr(Op.IF, expr(Op.and, expr(Op.>, counter, 3), expr(Op.<, counter, 8)), HIGH, LOW)
+
+    setSysClk(clk.signal)
+    setSysReset(reset.signal)
     
     return (clk, reset, counter)
   }

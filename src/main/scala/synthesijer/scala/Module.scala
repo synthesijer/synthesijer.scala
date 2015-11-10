@@ -120,13 +120,6 @@ trait ModuleFunc extends HDLModule{
     return i
   }
   
-  def instance(target:ModuleFunc, name:String, clk:ExprItem, reset:ExprItem) : Instance = {
-    val i = instance(target, name)
-    i.sysClk := clk
-    i.sysReset := reset
-    return i
-  }
-  
   def instance(target:HDLModule, name:String) : Instance = {
     val i = new Instance(this, newModuleInstance(target, name))
     all_instances = all_instances :+ i

@@ -79,7 +79,7 @@ class CARRY4_sim(t:CARRY4_test) extends SimModule("CARRY4_sim"){
   
   val (clk, reset, counter) = system(10)
   
-  val u = instance(t, "u", clk, reset)
+  val u = instance(t, "u")
 
   for(i <- 0 until 8){
     u.signalFor(t.a(i)) $ clk := ?(counter == 10, HIGH, ?(counter == 11,  LOW, ?(counter == 12, HIGH, LOW)))

@@ -12,3 +12,4 @@ unmanagedClasspath in Runtime += additionalClasses
 val extraLibClasses = file(sys.env("SYNTHESIJER_EXTRA_LIB"))
 unmanagedClasspath in Compile += extraLibClasses
 unmanagedClasspath in Runtime += extraLibClasses
+

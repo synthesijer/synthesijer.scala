@@ -1,5 +1,6 @@
 package synthesijer.scala
 
+import synthesijer.Misc
 import synthesijer.hdl.HDLExpr
 import synthesijer.hdl.HDLInstance
 import synthesijer.hdl.HDLModule
@@ -22,10 +23,24 @@ trait ModuleFunc extends HDLModule{
   var all_sequencers = Seq.empty[Sequencer]
   
   def genVHDL() = Utils.genVHDL(this)
+
   def genVerilog() = Utils.genVerilog(this)
+
   def genVHDLTmpl() = Utils.genVHDLTmpl(this)
+
   def genComponentXML() = HDLModuleToComponentXML.conv(this, null, "vendor", "user");
-  
+
+  def genUCF() = Misc.genUCF(this)
+
+  def genXDC() = Misc.genXDC(this)
+
+  def portFor(name:String):Port = {
+    for(p <- all_ports){
+      if(p.port.getName() == name) return p
+    }
+    return null
+  }
+
   def outP(name:String) : Port = {
     val p = new Port(this, newPort(name, HDLPort.DIR.OUT, HDLPrimitiveType.genBitType()))
     all_ports = all_ports :+ p
@@ -331,6 +346,14 @@ class Port(module:ModuleFunc, val port:HDLPort) extends ExprItem(module) with Ex
   
   def signal:Signal = new Signal(module, port.getSignal())
 
+  def setPinID(v:String) = port.setPinID(v)
+
+  def getPinID() = port.getPinID()
+
+  def setIoAttr(v:String) = port.setIoAttr(v)
+
+  def getIoAttr() = port.getIoAttr()
+
 }
 
 abstract class ExprItem(val module:ModuleFunc) {
@@ -350,6 +373,7 @@ abstract class ExprItem(val module:ModuleFunc) {
   def or (e:ExprItem):ExprItem = module.expr(Op.or, this, e)
   def xor (e:ExprItem):ExprItem = module.expr(Op.xor, this, e)
   def ! : ExprItem = module.expr(Op.not, this)
+  def unary_! : ExprItem = module.expr(Op.not, this)
   
   def == (e:ExprItem):ExprItem = module.expr(Op.eq, this, e)
   def == (v:Int) : ExprItem = module.expr(Op.eq, this, v)

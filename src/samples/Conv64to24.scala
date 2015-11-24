@@ -96,7 +96,7 @@ class Conv64to24(n:String, c:String, r:String) extends Module(n, c, r){
   
   val s10 = s9 -> seq.add()
   send.we <= (s10, LOW)
-  s10 -> ((send.full!) and (recv.count > KICK_THREASHOLD), s2)
+  s10 -> ((!send.full) and (recv.count > KICK_THREASHOLD), s2)
   
 }
 

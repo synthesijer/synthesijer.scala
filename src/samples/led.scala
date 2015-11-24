@@ -37,6 +37,13 @@ object led {
     led.genVHDL()
     led.genVerilog()
     sim.genVHDL()
+
+    led.portFor("q").setPinID("M14"); led.portFor("q").setIoAttr("LVCMOS33");
+    led.sysClk.setPinID("L16");   led.sysClk.setIoAttr("LVCMOS33");
+    led.sysReset.setPinID("G15"); led.sysReset.setIoAttr("LVCMOS33");
+
+    println(led.genUCF())
+    println(led.genXDC())
   }
 
 }

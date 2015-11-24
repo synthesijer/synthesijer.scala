@@ -49,7 +49,7 @@ class SyncGenerator(n:String, c:String, r:String) extends Module(n, c, r){
                  ?(hsync_counter == (h_p-1), HIGH,
                  hsync0)))
   hsync1 <= (s0, hsync0)
-  hsync2 <= (s0, hsync1 and (hsync0!))
+  hsync2 <= (s0, hsync1 and (!hsync0))
   
   vsync_counter <= (s0, ?(vsync_counter == v_all, VECTOR_ZERO,
                         ?(hsync2, vsync_counter + 1,
@@ -88,8 +88,8 @@ class SyncGenerator(n:String, c:String, r:String) extends Module(n, c, r){
                   fifo_rd)))
   
   DATA <= (s0, fifo_din)
-  VSYNC := (vsync2!)
-  HSYNC := (hsync0!)
+  VSYNC := !vsync2
+  HSYNC := !hsync0
   DE := d_valid
 
 }

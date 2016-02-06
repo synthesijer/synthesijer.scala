@@ -204,7 +204,7 @@ trait ModuleFunc extends HDLModule{
   
 }
 
-class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
+class Module(val name:String, sysClkName:String, sysRsetName:String) extends HDLModule(name, sysClkName, sysRsetName) with ModuleFunc{
   def this(name:String) = this(name, "clk", "reset")
   
   def this(name:String, clk:Signal, reset:Signal) = this(name, clk.signal.getName, reset.signal.getName)
@@ -214,7 +214,7 @@ class Module(name:String, sysClkName:String, sysRsetName:String) extends HDLModu
   
 }
 
-class CombinationLogic(name:String) extends HDLModule(name) with ModuleFunc{
+class CombinationLogic(val name:String) extends HDLModule(name) with ModuleFunc{
 
 }
 

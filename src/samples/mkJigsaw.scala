@@ -2,12 +2,9 @@ package synthesijer.scala
 
 import synthesijer.scala._
 
-class mkJigsaw(w:Int, h:Int) extends Module("jigsaw", "clk", "reset"){
-
-  val piece_null = value(0, 2)
-
+class mkJigsaw3to2(val w:Int, val h:Int, n:String) extends Module(n, "clk", "reset"){
   val din = inP("din", h * 2)
-  val kick = inP("kick")
+  val en = inP("en")
 
   val dout = outP("dout", w)
   val valid = outP("valid"); valid.default(LOW)
@@ -17,11 +14,10 @@ class mkJigsaw(w:Int, h:Int) extends Module("jigsaw", "clk", "reset"){
   val TWO_P   = signal("TWO_P", 2);   TWO_P   := value(2, 2)
   val UNKNOWN = signal("UNKNOWN", 2); UNKNOWN := value(3, 2)
 
+  val din_reg = signal(h*2)
+
   // initialization of each piece (lldd)
-  val map = for(i <- 0 until w * h; val s = signal("signal_" + i, 4)) yield {
-    s.reset(value(0xf,4))
-    s
-  }
+  val map = for(i <- 0 until w * h; val s = signal("signal_" + i, 4)) yield s
 
   // return new piece expr(lldd)
   def next_piece(u:ExprItem, r:ExprItem) = {
@@ -33,7 +29,7 @@ class mkJigsaw(w:Int, h:Int) extends Module("jigsaw", "clk", "reset"){
     ?(u == ONE_P  and r == TWO_P,  TWO_P  & ONE_P,
     UNKNOWN & UNKNOWN))))))
   }
-
+  
   // stop condition
   var stop_flag:ExprItem = HIGH
   for(i <- 0 until h) {
@@ -48,15 +44,22 @@ class mkJigsaw(w:Int, h:Int) extends Module("jigsaw", "clk", "reset"){
     result = e & result
   }
 
+}
+
+class mkJigsaw3to2_FF(w:Int, h:Int) extends mkJigsaw3to2(w, h, "jigsaw3to2_ff"){
+
+  for(s <- map) s.reset(value(0xf,4))
+
   val seq = sequencer("main")
-  val s0 = seq.idle * kick -> seq.add()
+  val s0 = seq.idle * en -> seq.add()
+  din_reg <= seq.idle * ?(en, din, value(-1, h*2))
 
   for(i <- 0 until w * h){
     if(i == 0){
-      val r = din.range(1, 0) // input[0]
+      val r = din_reg.range(2*h-1, 2*h-1-1) // input[0]
       map(i) <= s0 * next_piece(ZERO_P, r)
     }else if(i%w == 0){ // right edge
-      val r = din.range((i / w) * 2+1, (i / w) * 2) // input[i/w]
+      val r = din_reg.range(2*h-1-2*(i/w), 2*h-1-2*(i/w)-1) // input[i/w]
       val u = map(i-w).range(1, 0)  // dd of the upper piece
       map(i) <= s0 * next_piece(u, r)
     }else if(i/w == 0){ // upper edge
@@ -68,16 +71,42 @@ class mkJigsaw(w:Int, h:Int) extends Module("jigsaw", "clk", "reset"){
       map(i) <= s0 * next_piece(u, r)
     }
   }
-  val s1 = s0 * (stop_flag == HIGH) -> seq.add()
+  s0 * (stop_flag == HIGH) -> seq.idle
 
-  valid <= s1 * HIGH
-  dout <= s1 * result
+  valid <= s0 * stop_flag
+  dout <= s0 * result
+}
 
-  s1 -> seq.idle
+class mkJigsaw3to2_Expr(w:Int, h:Int) extends mkJigsaw3to2(w, h, "jigsaw3to2_expr"){
+
+  din_reg := ?(en, din, value(-1, h*2))
+
+  for(i <- 0 until w * h){
+    if(i == 0){
+      val r = din_reg.range(2*h-1, 2*h-1-1) // input[0]
+      map(i) := next_piece(ZERO_P, r)
+    }else if(i%w == 0){ // right edge
+      val r = din_reg.range(2*h-1-2*(i/w), 2*h-1-2*(i/w)-1) // input[i/w]
+      val u = map(i-w).range(1, 0)  // dd of the upper piece
+      map(i) := next_piece(u, r)
+    }else if(i/w == 0){ // upper edge
+      val r = map(i-1).range(3, 2) // ll of the right piece
+      map(i) := next_piece(ZERO_P, r)
+    }else{
+      val u = map(i-w).range(1, 0) // dd of the upper piece
+      val r = map(i-1).range(3, 2) // ll of the right piece
+      map(i) := next_piece(u, r)
+    }
+  }
+
+  valid $ sysClk := stop_flag
+  dout $ sysClk := result
 
 }
 
-class JigsawSim(m:mkJigsaw) extends SimModule("jigsaw_sim"){
+class mkJigsaw3to2_Sim(m:mkJigsaw3to2, n:String) extends SimModule(n){
+
+  def this(m:mkJigsaw3to2) = this(m, m.name + "_sim")
   
   val (clk, reset, counter) = system(10)
   
@@ -85,7 +114,9 @@ class JigsawSim(m:mkJigsaw) extends SimModule("jigsaw_sim"){
   inst.sysClk := clk
   inst.sysReset := reset
   
-  inst.signalFor(m.kick) $ clk := ?(counter == 100, HIGH, LOW)
+  inst.signalFor(m.en) $ clk := ?(counter == 100, HIGH, LOW)
+  // 201 -> 10_00_01 -> 0x21
+  inst.signalFor(m.din) $ clk := ?(counter == 100, value(0x21, m.h * 2), VECTOR_ZERO)
   
 }
 
@@ -93,15 +124,24 @@ class JigsawSim(m:mkJigsaw) extends SimModule("jigsaw_sim"){
 object mkJigsaw {
 
   def main(args:Array[String]) = {
-    val m = new mkJigsaw(5, 3)
-    val sim = new JigsawSim(m)
-    // 102 -> 01_00_10 -> 0x12
-    sim.inst.signalFor(m.din) := sim.value(0x12, 6)
+    {
+      val m = new mkJigsaw3to2_FF(6, 4)
+      val sim = new mkJigsaw3to2_Sim(m)
+      m.genVHDL()
+      m.genVerilog()
+      sim.genVHDL()
+      sim.genVerilog()
+    }
 
-    m.genVHDL()
-    m.genVerilog()
-    sim.genVHDL()
-    sim.genVerilog()
+    {
+      val m = new mkJigsaw3to2_Expr(6, 4)
+      val sim = new mkJigsaw3to2_Sim(m)
+      m.genVHDL()
+      m.genVerilog()
+      sim.genVHDL()
+      sim.genVerilog()
+    }
+
   }
 
 }

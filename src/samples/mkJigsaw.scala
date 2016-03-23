@@ -1,5 +1,3 @@
-package synthesijer.scala
-
 import synthesijer.scala._
 
 class mkJigsaw3to2(val w:Int, val h:Int, n:String) extends Module(n, "clk", "reset"){

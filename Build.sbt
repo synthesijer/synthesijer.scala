@@ -9,7 +9,7 @@ val additionalClasses = file(sys.env("SYNTHESIJER"))
 unmanagedClasspath in Compile += additionalClasses
 unmanagedClasspath in Runtime += additionalClasses
 
-val extraLibClasses = file(sys.env("SYNTHESIJER_EXTRA_LIB"))
+val extraLibClasses = file(sys.env("SYNTHESIJER_EXTRA_LIB")+"/bin")
 unmanagedClasspath in Compile += extraLibClasses
 unmanagedClasspath in Runtime += extraLibClasses
 

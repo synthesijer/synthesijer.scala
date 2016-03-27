@@ -1,6 +1,6 @@
 import synthesijer.scala._
 
-class mkBatcherSortingNetwork(
+class mkOddEvenSortingNetwork(
   n:String, val num:Int, width:Int, key:Int,
   odd_buf:Boolean, even_buf:Boolean, o_buf:Boolean, i_buf:Boolean) extends Module(n, "clk", "reset"){
 
@@ -72,7 +72,7 @@ class mkBatcherSortingNetwork(
 
 }
 
-class mkBatcherSortingNetworkSim(n:String, m:mkBatcherSortingNetwork) extends SimModule(n){
+class mkOddEvenSortingNetworkSim(n:String, m:mkOddEvenSortingNetwork) extends SimModule(n){
   val (clk, reset, counter) = system(10)
   val inst = instance(m)
   for(i <- 0 until m.num){
@@ -83,13 +83,13 @@ class mkBatcherSortingNetworkSim(n:String, m:mkBatcherSortingNetwork) extends Si
   inst.sysClk := clk
 }
 
-object mkBatcherSortingNetwork{
+object mkOddEvenSortingNetwork{
 
   def gen(n:String, num:Int, w:Int, k:Int, odd_buf:Boolean, even_buf:Boolean, o_buf:Boolean, i_buf:Boolean) = {
-    val m = new mkBatcherSortingNetwork(n, num, w, k, odd_buf, even_buf, odd_buf, i_buf)
+    val m = new mkOddEvenSortingNetwork(n, num, w, k, odd_buf, even_buf, odd_buf, i_buf)
     m.genVHDL()
     m.genVerilog()
-    val sim = new mkBatcherSortingNetworkSim(m.getName() + "_sim", m)
+    val sim = new mkOddEvenSortingNetworkSim(m.getName() + "_sim", m)
     sim.genVHDL()
     sim.genVerilog()
   }
